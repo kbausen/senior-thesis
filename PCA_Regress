@@ -1,0 +1,447 @@
+import math
+import os
+import scipy
+from scipy.optimize import lsq_linear
+import numpy as np
+from scipy.linalg import toeplitz
+import matplotlib.pyplot as plt
+from scipy.stats import multivariate_normal, halfnorm
+import random
+import h5py
+from scipy.io import loadmat
+import random
+import pickle
+
+def shape_matrix (array):
+    """ 
+    This function takes in the interpPSTH array and will reshape it from [conditions, neurons, time bins] to a 2D matrix [conditions x timebins, neurons]
+
+    Parameters: 
+        array: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
+
+    Returns: 
+        new_mat: reshaped the array into a 2 dimension matrix [conditions x timebins, neurons]--making it a tall and skinny array for SVD
+    """
+    conditions, neurons, time_bins = array.shape
+    new_mat = np.zeros((conditions * time_bins, neurons))
+
+    # reshapes the array to insert all time bins for one condition for each neuron, then moves onto the next condition
+    for i in range(conditions):
+        new_mat[i*time_bins:(i+1)*time_bins, :] = array[i,:,:].T
+    return new_mat
+
+def svd (matrix, plot = False): 
+    """ 
+     This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
+    before). It will return the left singular vectors, singular values, and right singular vectors and create a plot of the fractional variance by PC if 
+    requested.
+
+    Parameters: 
+        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons]
+        plot: must be either True or False value. True will result in a plot formed to show the variance each singular value captures. 
+
+    Returns: 
+        U: the left singular vectors 
+        S_: the singular values 
+        V_T: the right singular vectors 
+    """
+    # Computing the covariance 
+    C_2 = np.cov(matrix.T)
+
+    # Running SVD on the covariance matrix
+    U,S_,V_T = np.linalg.svd(C_2)
+    s_tot = np.sum(S_)
+    frac = S_/s_tot
+    
+
+    # Plots the fraction of variance by PC
+    if plot: 
+        plt.plot([k for k in range(0,len(S_))], frac, linestyle = ' ', marker = 'o')
+        plt.xlabel('kth PC')
+        plt.ylabel('Fraction of Variance of kth PC')
+        plt.ylim(0,1)
+        # plt.ylim(0, np.max(S_, 0) + np.max(S_, 0)/10)
+        if matrix.shape[1] == 202:
+            plt.title('All Neurons Principal Components Fractional Variance')
+        elif matrix.shape[1] == 98: 
+            plt.title('PMd Principal Components Fractional Variance')
+        elif matrix.shape[1] == 104: 
+            plt.title('M1 Principal Components Fractional Variance')
+        
+        plt.show()
+
+    # Returning the left singular vectors, singular values, and right singular vectors 
+    return U, S_, V_T
+
+def frac_var (matrix, ideal_var, plot = False): 
+    """ 
+    This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] (use shape_matrix ()before). It will then call svd() to compute the
+    singular values. Next it will compute how many PCs are needed to acquire the variance the user has input (value between 0 and 1). It will plot 
+    a graph of the cumulative singular values if requested, and print out how many PCs are needed for the requested variance.  
+
+    Parameters: 
+        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons]
+        ideal_var: can be any number between 0 and 1, representing the amount of variation the user would like the PCs to capture from the data
+        plot: must be either True or False value. True will result in a plot formed to show the cumulative variance for singular values. 
+
+    """
+    # the ideal_var should be passed over as a value between 0 and 1 
+
+    _,S_,_ = svd(matrix)
+
+    
+    # initializing variables for the for loop 
+    total_var = np.sum(S_)
+    frac = []
+    current_var = 0
+
+    # fills frac with the cumulative variance when using the singular values including that index (index i contains the cumulative variance for the 
+    # :i singular values
+    for i in range(len(S_)): 
+        current_var += S_[i]
+        frac.append(current_var/total_var)
+
+    # this will identify how many PCs would be needed to capture the preferred variance 
+    for k in range (len(S_)):
+        if frac[k] >ideal_var:
+            print("index for ideal variance is ", k)
+            break
+    
+
+    # will produce a plot for the cumulative variance 
+    if plot: 
+        plt.plot([k for k in range(0,len(S_))], frac, linestyle = ' ', marker = 'o')
+        plt.axvline(x=k, color='r', linestyle='-', label=f'{ideal_var}% variance explained')
+        plt.xlabel('kth PC')
+        plt.ylabel('cum fraction of kth PC')
+        plt.ylim(0,1)
+        plt.legend()
+        if matrix.shape[1] == 202:
+            plt.title('All Neurons Principal Components Cumulative Fractional Variance')
+        elif matrix.shape[1] == 98: 
+            plt.title('PMd Principal Components Cumulative Fractional Variance')
+        elif matrix.shape[1] == 104: 
+            plt.title('M1 Principal Components Cumulative Fractional Variance')
+        
+        plt.show()
+
+def amt_var (matrix, rank): 
+    _,S_,_ = svd(matrix)
+    
+     # initializing variables 
+    total_var = np.sum(S_)
+    current_var = np.sum(S_[:rank])
+    frac = current_var / total_var
+    
+
+    print(f'{frac}% variance explained')
+
+def run_PCA (matrix, rank):
+    """ 
+    This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
+    before). It will then perform a rank k approximation using the specified rank and return the projected data. 
+
+    Parameters: 
+        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons]
+        rank: the specified amount of the dimensions that the data should be projected onto 
+        
+    Returns:
+        proj: the projected rank k approximation of the dataset
+        U[:,:rank]: the left singular vectors used to create the approximation 
+    """
+    
+    # runs PCA 
+    U, S_, V_T = svd(matrix)
+
+    # create a mean centered matrix
+    mean_centered = matrix - np.mean(matrix, axis = 0)
+    
+    # project the mean centered data onto these PCs to produce a rank k approximation
+    proj = mean_centered @  U[:, :rank] 
+   
+    # takes the dot product of proj_set and V_T to get the rank k approximation, 
+    # print(f"proj shape is {proj_set.shape}")
+    # print(f"V_T shape is {V_T.shape}")
+    proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
+    
+    return proj, U[:, :rank], proj2
+
+    
+def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
+    """
+    This function takes in the interpPSTH 2D matrix [timebins, neurons] and will plot the PSTH
+
+    Parameters: 
+        matrix: must be an interpPSTH array which has the shape [timebins, neurons]
+        start_time: the beginning time of the data passed through in ms 
+        cond: which condition is being plotted 
+        approximation: whether it's a reduced-rank PSTH
+        reconstruction: int, used to label reconstructions
+        start_PC: first principal component number for labels
+        ax: matplotlib.axes.Axes object (optional)
+    """
+    if ax is None:
+        fig, ax = plt.subplots()
+    
+    # forms the time bins
+    num_times = matrix.shape[0]
+    times = np.arange(start_time, num_times * 10 + start_time, 10)
+
+    
+     # Plot data
+    if approximation:
+        ax.set_title(f"Reduced Rank PSTH of M1 Reach {cond}")
+        for i in range(matrix.shape[1]):
+            ax.plot(times, matrix[:, i], label=f"PC {start_PC}")
+            start_PC += 1
+        if matrix.shape[1] < 7:
+            ax.legend()
+    else:
+        ax.set_title(f"Original PSTH of Reach {cond}")
+        for i in range(matrix.shape[1]):
+            ax.plot(times, matrix[:, i])
+
+    if reconstruction > 0:
+        ax.set_title(f"{reconstruction} Dim Reconstruction of PSTH Reach {cond}")
+
+    if regression > 0: 
+        ax.set_title(f" Ridge Regression {regression} Dim Reconstruction Reach {cond}")
+
+    # Vertical lines for cues
+    cues = [400, 1200, 1550]
+    labels = ['target on', 'go cue', 'movement start']
+    colors = ['r', 'g', 'y']
+    for xval, label, color in zip(cues, labels, colors):
+        ax.axvline(x=xval, color=color, linestyle='--')
+        ax.text(xval + 1, ax.get_ylim()[0] * 0.96, label,
+                rotation=0, verticalalignment='center',
+                color=color, fontweight='bold')
+
+    
+    ax.set_xlabel('time (ms)')
+    ax.set_xlim(start_time, times[-1])
+    ax.set_ylabel('spikes per second')
+    if (np.max(matrix) < 1.1):
+        ax.set_ylabel('scaled spikes per second')
+    ax.grid(True)
+   
+def projections(matrix, dimensions):
+    _, left_vec, _ = run_PCA(matrix, dimensions)
+    matrix_cent = matrix - np.mean(matrix, axis=0)
+    dim1 = matrix_cent @ left_vec[:, 0]
+    rows = int(np.ceil(dimensions / 2))
+
+    fig, axs = plt.subplots(2, rows, figsize=(12, 6))
+    axs = axs.flatten()
+
+    # Set up a single set of labels and line handles for the legend
+    legend_lines = []
+    legend_labels = ['Start', 'Other', 'Preparatory', 'Movement']
+
+    for i in range(dimensions - 1):
+        dim_temp = matrix_cent @ left_vec[:, i + 1]
+
+        axs[i].plot(dim_temp[0], dim1[0], 'o', color='red', markersize=8, label='Start')
+        axs[i].plot(dim_temp[1:30], dim1[1:30], '-', color='blue', label='Other')
+        axs[i].plot(dim_temp[30:70], dim1[30:70], '-', color='orange', label='Preparatory')
+        axs[i].plot(dim_temp[70:135], dim1[70:135], '-', color='blue', label='Other')
+        axs[i].plot(dim_temp[135:215], dim1[135:215], '-', color='green', label='Movement')
+        axs[i].plot(dim_temp[215:236], dim1[215:236], '-', color='blue', label='Other')
+
+        axs[i].set_xlabel(f"Dimension {i + 2}")
+        axs[i].set_ylabel("Dimension 1")
+
+    plt.tight_layout()
+    plt.show()
+
+def neu_recon (matrix, dimensions):
+    _,left_vec,_ = run_PCA(matrix, dimensions)
+    mean_sub = matrix - np.mean(matrix, axis = 0)
+
+    recon = mean_sub @ left_vec @ left_vec.T
+    return recon
+
+def mse (true_values, predicted_values):
+    """
+    This function computes the mean squared error between the true values and the predicted values.
+
+    Parameters:
+        true_values: numpy array of true values
+        predicted_values: numpy array of predicted values
+    """
+    return np.mean((true_values - predicted_values) ** 2)
+
+def regress (M, N, lam):
+    """
+    This function performs ridge regression on the data matrix M with regularization parameter lam.
+
+    Parameters:
+        M: numpy array of shape (n_samples, n_features)
+        N: number of features to use for regression
+        lam: regularization parameter
+
+    Returns:
+        W: numpy array of shape (n_features, n_features) containing the regression coefficients
+        M_hat: numpy array of shape (n_samples, n_features) containing the predicted values
+        R_squared: numpy array of shape (n_features,) containing the R-squared values for each feature
+        MSE: mean squared error of the predictions
+    """
+    
+    # compute the covariance matrix
+    C = np.cov(M.T)
+    
+    # compute the inverse of the covariance matrix with regularization
+    C_inv = np.linalg.inv(C + lam * np.eye(C.shape[0]))
+    
+    # compute the regression coefficients
+    W = C_inv @ M.T
+    
+    # compute the predicted values
+    M_hat = M @ W
+    
+    # compute R-squared values
+    R_squared = 1 - np.var(M - M_hat, axis=0) / np.var(M, axis=0)
+
+    return W, M_hat, R_squared
+
+def best_lam(M, mus_training, neu_training, PCs):
+    """
+    This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
+    value and the mean squared error for that lambda.
+
+    Parameters: 
+        training: a 2D numpy array where each row is a sample and each column is a feature
+
+    Returns: 
+        best_lambda: the best lambda value found during cross-validation
+        mse: the mean squared error for the best lambda
+    """
+    # Define a range of lambda values to test
+    lambdas = np.logspace(-4, 4, 100)
+    
+    # Initialize variables to store the best lambda and its corresponding MSE
+    best_lambda = None
+    min_mse = float('inf')
+    
+    
+    # Perform cross-validation
+    for lam in lambdas:
+        mse_vals = []
+        for i in range(neu_training.shape[0]):
+
+            # Leave-one-out cross-validation: use all but one sample for training
+            train_neu = np.delete(neu_training, i, axis=0)
+            train_mus = np.delete(mus_training, i, axis=0)
+
+            test_neu = neu_training[i, :]
+            test_mus = mus_training[i, :]
+            
+            train_cov = train_neu.T @ train_neu
+            # Fit a ridge regression model with the current lambda
+            W = regress(train_mus, train_neu, lam)[0]
+            
+            
+            # Predict on the test sample
+            check = test_neu @ W
+            mus_prediction = check @ PCs.T
+            
+            # Calculate MSE for this prediction
+            mse = mse(M, mus_prediction)
+            np.append(mse_vals, mse)
+            # Update best lambda if current MSE is lower than previous minimum
+        mean_mse = np.mean(mse_vals)
+        if mean_mse < min_mse:
+            min_mse = mean_mse
+            best_lambda = lam
+    
+
+    # Return the best lambda and its corresponding MSE         
+    return best_lambda, min_mse
+
+def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236): 
+    """
+    Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
+    to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
+
+    Parameters: 
+        M: This is a 2D matrix [conditions x time bins, muscle/neuron readouts] which is dependent on N
+        N: This is a 2D matrix [conditions x time bins, neurons] 
+        condition: reach number 
+        M_dim: amount of PCs to project M onto 
+        N_dim: amount of PCs to project N onto (should be double M)
+        num_bins: how many time bins are in each trial 
+
+    Returns:
+        W: weight matrix found using least squares regression
+        M_hat: the product of N_tilde (N projected onto N_dim PCs) and W. Shape is [num_bins, M_dim] 
+        M_hat_recon: reconstruction of M using M_hat and the PCs  
+        R_squared: one value of R squared for every column of M_hat
+    
+    """
+    
+    
+    start_condition = (condition - 1) * num_bins
+    end_condition = start_condition + 236
+
+    # retrieving data projected onto the first N_dim and M_dim PCs
+    N_tilde,_,_ = run_PCA(N, N_dim)
+    M_tilde,PCs,_ = run_PCA(M, M_dim)
+
+    #slicing needed because the times of M and N aren't compatible right now
+    # N_tilde = N_tilde[start_condition:end_condition,:]
+    # M_tilde = M_tilde[start_condition:end_condition,:]
+
+    N_tilde_cov = N_tilde.T @ N_tilde
+    I = np.identity(N_dim)
+    lam = .001
+    
+    # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
+    W = np.linalg.solve(N_tilde_cov + lam * I, N_tilde.T @ M_tilde)
+
+    # calculating the M_hat by multiplying N_tilde and W from above
+    M_hat = N_tilde @ W
+    
+    R_squared = []
+
+    # calculating R squared for each column of M_tilde
+    for i in range (W.shape[1]):
+        SST = M_tilde[:,i] - np.mean(M_tilde[:,i])
+        SST = SST @ SST.T
+        SSR = M_hat[:,i] - np.mean(M_tilde[:,i])
+        SSR = SSR @ SSR.T
+        R_sq = 1 - (SSR / SST)
+        R_squared.append(R_sq)
+    R_squared = np.array(R_squared)
+
+    # projecting M_hat onto the PCs of M for a reconstruction 
+    M_hat_recon = M_hat @ PCs.T 
+
+    # calcualting mean squared error of the reconstruction 
+    MSE = mse(M, M_hat_recon)
+    
+    
+    return W, M_hat, M_hat_recon, R_squared, MSE
+    
+def scaling (tensor):
+    """
+    Takes in a tensor of shape [conditions, neurons, time bins] and scales it between 0 and 1. Then returns a tall and skinny 2D matrix of 
+    shape [conditions x time bins, neurons]. 
+
+    Parameters: 
+        tensor: a 3D tensor of shape [conditions, neurons, time bins]
+
+    Returns: 
+        norm_matrix: a 2D version of tensor (shaped [conditions x time bins, neurons]) which is scaled between 0 and 1 
+    """
+    new_tensor = np.zeros_like(tensor)
+    
+    for i in range (tensor.shape[0]):
+        # create an array
+        data = tensor[i,:,:]
+        normalized = (data-np.min(data))/(np.max(data)-np.min(data))
+        new_tensor[i,:,:] = normalized
+        
+    norm_matrix = shape_matrix(new_tensor)
+
+    return(norm_matrix)
+    
