@@ -445,3 +445,5 @@ def scaling (tensor):
 
     return(norm_matrix)
     
+def check():
+    print ("success")
