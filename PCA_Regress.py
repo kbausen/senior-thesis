@@ -270,7 +270,7 @@ def mse (true_values, predicted_values):
     """
     return np.mean((true_values - predicted_values) ** 2)
 
-def regress (M, N, lam):
+def regress (train_M, train_N, lam):
     """
     This function performs ridge regression on the data matrix M with regularization parameter lam.
 
@@ -287,19 +287,17 @@ def regress (M, N, lam):
     """
     
     # compute the covariance matrix
-    C = np.cov(M.T)
+    C = np.cov(train_M.T)
+    I = np.eye(C.shape[0])
     
-    # compute the inverse of the covariance matrix with regularization
-    C_inv = np.linalg.inv(C + lam * np.eye(C.shape[0]))
-    
-    # compute the regression coefficients
-    W = C_inv @ M.T
+    # compute the weights matrix
+    W = np.linalg.solve(np.linalg.inv(C + lam * I), train_N.T @ train_M)
     
     # compute the predicted values
-    M_hat = M @ W
+    M_hat = train_M @ W
     
     # compute R-squared values
-    R_squared = 1 - np.var(M - M_hat, axis=0) / np.var(M, axis=0)
+    R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(M, axis=0)
 
     return W, M_hat, R_squared
 
@@ -337,7 +335,7 @@ def best_lam(M, mus_training, neu_training, PCs):
             
             train_cov = train_neu.T @ train_neu
             # Fit a ridge regression model with the current lambda
-            W = regress(train_mus, train_neu, lam)[0]
+            W, _, _ = regress(train_mus, train_neu, lam)[0]
             
             
             # Predict on the test sample
@@ -392,10 +390,10 @@ def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236):
 
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
-    lam = .001
+    lam, _ = best_lam(M_tilde, N_tilde, M_tilde, PCs)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
-    W = np.linalg.solve(N_tilde_cov + lam * I, N_tilde.T @ M_tilde)
+    W = np.linalg.solve(np.linalg.inv(N_tilde_cov + lam * I), N_tilde.T @ M_tilde)
 
     # calculating the M_hat by multiplying N_tilde and W from above
     M_hat = N_tilde @ W

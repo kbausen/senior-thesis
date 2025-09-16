@@ -1,0 +1,40 @@
+import math
+import os
+import scipy
+from scipy.optimize import lsq_linear
+import numpy as np
+from scipy.linalg import toeplitz
+import matplotlib.pyplot as plt
+from scipy.stats import multivariate_normal, halfnorm
+import random
+import h5py
+from scipy.io import loadmat
+import random
+import pickle
+import PCA_Regress as pcar
+
+
+# base_path =r"C:\Users\katie\OneDrive\Desktop\Thesis"
+# with open(base_path+'\J_neu.pkl', "rb") as input_file:
+#     J_pickle = pickle.load(input_file)
+# del input_file
+##help
+
+
+# base_path =r"C:\Users\katie\OneDrive\Desktop\Thesis"
+# with open(base_path+'\J_mus.pkl', "rb") as input_file:
+#     J_pickle_m = pickle.load(input_file)
+# del input_file
+
+base_path = "/Users/kb6113/Desktop/Thesis"
+with open(base_path+'/J_neu.pkl', "rb") as input_file:
+    J_pickle = pickle.load(input_file)
+del input_file
+
+with open(base_path+'/J_mus.pkl', "rb") as input_file:
+    J_pickle_m = pickle.load(input_file)
+del input_file
+
+J_all_PSTH = J_pickle['J_all']['interpPSTH']
+J_all_PSTH_new = pcar.shape_matrix(J_all_PSTH)
+pcar.frac_var(J_all_PSTH_new, .7, plot=True)
