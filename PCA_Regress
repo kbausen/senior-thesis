@@ -9,7 +9,6 @@ from scipy.stats import multivariate_normal, halfnorm
 import random
 import h5py
 from scipy.io import loadmat
-import random
 import pickle
 
 def shape_matrix (array):
