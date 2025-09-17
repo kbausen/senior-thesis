@@ -287,17 +287,18 @@ def regress (train_M, train_N, lam):
     """
     
     # compute the covariance matrix
-    C = np.cov(train_M.T)
+    C = np.cov(train_N.T)
     I = np.eye(C.shape[0])
     
+
     # compute the weights matrix
     W = np.linalg.solve(np.linalg.inv(C + lam * I), train_N.T @ train_M)
     
     # compute the predicted values
-    M_hat = train_M @ W
+    M_hat = train_N @ W
     
     # compute R-squared values
-    R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(M, axis=0)
+    R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
 
     return W, M_hat, R_squared
 
