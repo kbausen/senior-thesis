@@ -57,6 +57,6 @@ print (low_N.shape)
 print (W_T.shape)
 print (low_M.shape)
 
-W_hat, M_hat, _ = pcar.regress(low_M, low_N, lam = 0.00)
+W_hat, M_hat, _ = pcar.regress(low_M, low_N, lam = 0.001)
 print(W_T)
 print(W_hat)
