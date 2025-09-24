@@ -39,7 +39,7 @@ del input_file
 # del input_file
 
 J_all_PSTH = J_pickle['J_all']['interpPSTH']
-J_all_PSTH_new = pcar.shape_matrix(J_all_PSTH)
+J_all_PSTH_new = pcar.scaling(J_all_PSTH)
 print(J_all_PSTH_new.shape)
 # pcar.frac_var(J_all_PSTH_new, .7, plot=True)
 
@@ -51,12 +51,16 @@ print(np.average(np.min(J_all_PSTH_new, axis = 0)))
 
 W_T = np.random.uniform(1, 9, 18).reshape((6, 3))
 low_N = np.random.uniform(0.2, 20.59, 120)
-low_N = np.reshape(low_N,(20, 6))
+low_N = np.reshape(low_N,(20,6))
 low_M = low_N @ W_T
+print (low_M.shape)
+
 print (low_N.shape)
 print (W_T.shape)
 print (low_M.shape)
 
 W_hat, M_hat, _ = pcar.regress(low_M, low_N, lam = 0.001)
+MSE = np.mean((low_M - M_hat)**2)
 print(W_T)
 print(W_hat)
+print(MSE)

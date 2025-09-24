@@ -275,13 +275,13 @@ def regress (train_M, train_N, lam):
     This function performs ridge regression on the data matrix M with regularization parameter lam.
 
     Parameters:
-        M: numpy array of shape (n_samples, n_features)
-        N: number of features to use for regression
+        train_M: numpy array of shape [time-1, rank k] containing rank approximation of the muscle data
+        train_N: numpy array of shape [time-1, rank 2k] containing rank approximation of the neural data
         lam: regularization parameter
 
     Returns:
-        W: numpy array of shape (n_features, n_features) containing the regression coefficients
-        M_hat: numpy array of shape (n_samples, n_features) containing the predicted values
+        W: numpy array of shape [rank 2k, rank k] containing the regression coefficients
+        M_hat: numpy array of shape [time-1, rank k] containing the predicted values
         R_squared: numpy array of shape (n_features,) containing the R-squared values for each feature
         MSE: mean squared error of the predictions
     """
@@ -308,7 +308,9 @@ def best_lam(M, mus_training, neu_training, PCs):
     value and the mean squared error for that lambda.
 
     Parameters: 
-        training: a 2D numpy array where each row is a sample and each column is a feature
+        mus_training: a 2D numpy array of shape [rank, muscles] which is the projection onto the first rank PCs
+        neu_training: a 2D numpy array of shape [rank, neurons] which is the projection onto the first rank PCs
+        M: the original muscle data of shape [conditions x time bins, muscles]
 
     Returns: 
         best_lambda: the best lambda value found during cross-validation
@@ -333,19 +335,20 @@ def best_lam(M, mus_training, neu_training, PCs):
 
             test_neu = neu_training[i, :]
             test_mus = mus_training[i, :]
+
             
-            train_cov = train_neu.T @ train_neu
+
             # Fit a ridge regression model with the current lambda
-            W, _, _ = regress(train_mus, train_neu, lam)[0]
+            W_hat= regress(train_mus, train_neu, lam)[0]
             
             
             # Predict on the test sample
-            check = test_neu @ W
-            mus_prediction = check @ PCs.T
+            check = test_neu @ W_hat
             
             # Calculate MSE for this prediction
-            mse = mse(M, mus_prediction)
+            mse = mse(test_mus, check)
             np.append(mse_vals, mse)
+
             # Update best lambda if current MSE is lower than previous minimum
         mean_mse = np.mean(mse_vals)
         if mean_mse < min_mse:
@@ -443,5 +446,4 @@ def scaling (tensor):
 
     return(norm_matrix)
     
-def check():
-    print ("success")
+print("PCA_Regress.py loaded")
