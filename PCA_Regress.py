@@ -226,19 +226,21 @@ def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstr
    
 def projections(matrix, dimensions):
     _, left_vec, _ = run_PCA(matrix, dimensions)
-    matrix_cent = matrix - np.mean(matrix, axis=0)
-    dim1 = matrix_cent @ left_vec[:, 0]
+    
+    # matrix_cent = matrix - np.mean(matrix, axis=0)
+    dim1 = matrix @ left_vec[:, 0]
     rows = int(np.ceil(dimensions / 2))
 
     fig, axs = plt.subplots(2, rows, figsize=(12, 6))
     axs = axs.flatten()
 
     # Set up a single set of labels and line handles for the legend
+
     legend_lines = []
     legend_labels = ['Start', 'Other', 'Preparatory', 'Movement']
 
     for i in range(dimensions - 1):
-        dim_temp = matrix_cent @ left_vec[:, i + 1]
+        dim_temp = matrix @ left_vec[:, i + 1]
 
         axs[i].plot(dim_temp[0], dim1[0], 'o', color='red', markersize=8, label='Start')
         axs[i].plot(dim_temp[1:30], dim1[1:30], '-', color='blue', label='Other')
@@ -252,6 +254,7 @@ def projections(matrix, dimensions):
 
     plt.tight_layout()
     plt.show()
+   
 
 def neu_recon (matrix, dimensions):
     _,left_vec,_ = run_PCA(matrix, dimensions)
@@ -448,3 +451,51 @@ def scaling (tensor):
     return(norm_matrix)
     
 print("PCA_Regress.py loaded")
+
+def fig_3(tensor, dimensions):
+    """
+    This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
+
+    Parameters: 
+        tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
+        dimensions: the number of dimensions to project onto (should be between 6 and 10)
+    """
+    matrix = shape_matrix(tensor)
+    _, left_vec, _ = run_PCA(matrix, dimensions)
+
+    mean_centered = matrix - np.mean(matrix, axis = 0)
+    mc_tensor = mean_centered.reshape(tensor.shape)
+
+    dim1 = matrix @ left_vec[:, 0]
+    rows = int(np.ceil(dimensions / 2))
+
+    fig, axs = plt.subplots(2, rows, figsize=(12, 6))
+    axs = axs.flatten()
+
+    # Set up a single set of labels and line handles for the legend
+
+    legend_lines = []
+    legend_labels = ['Start', 'Other', 'Preparatory', 'Movement']
+
+    
+    
+    for i in range(dimensions):
+
+        for j in range(tensor.shape[2]):
+            
+            dim1 = tensor[j, :, :] @ left_vec[:, i-1]
+            dim2 = tensor[j, :, :] @ left_vec[:, i]
+
+
+            axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
+            axs[i].plot(dim1[1:30], dim2[1:30], '-', color='blue', label='Other')
+            axs[i].plot(dim1[30:70], dim2[30:70], '-', color='orange', label='Preparatory')
+            axs[i].plot(dim1[70:135], dim2[70:135], '-', color='blue', label='Other')
+            axs[i].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
+            axs[i].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
+
+            axs[i].set_xlabel(f"Dimension {i + 2}")
+            axs[i].set_ylabel("Dimension 1")
+
+    plt.tight_layout()
+    plt.show()
