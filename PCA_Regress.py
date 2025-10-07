@@ -478,7 +478,7 @@ def fig_3(tensor, dimensions):
 
             if k != i: 
                 dim2_vector = left_vec[:, k]
-                c +=1
+               
                 for j in range(tensor.shape[0]):
                     current_cond = tensor[j, :, :]
                     current_cond = current_cond.reshape(202, 236)
@@ -497,6 +497,10 @@ def fig_3(tensor, dimensions):
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
                         axs[c].set_ylabel(f"Dimension {k + 1}")
+
+                c +=1
+
+             
 
     plt.tight_layout()
     plt.show()
