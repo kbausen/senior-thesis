@@ -475,7 +475,7 @@ def fig_3(tensor, dimensions):
     for i in range(dimensions):
 
         for j in range(tensor.shape[0]):
-            current_cond = tensor[j, :, :]
+            current_cond = mc_tensor[j, :, :]
             current_cond = current_cond.reshape(202, 236)
 
             if i < dimensions:
