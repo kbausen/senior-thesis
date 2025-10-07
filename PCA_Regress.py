@@ -469,7 +469,7 @@ def fig_3(tensor, dimensions):
 
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
-
+    c = 0
     
     for i in range(dimensions - 1):
         dim1_vector = left_vec[:,i]
@@ -478,7 +478,7 @@ def fig_3(tensor, dimensions):
 
             if k != i: 
                 dim2_vector = left_vec[:, k]
-
+                c +=1
                 for j in range(tensor.shape[0]):
                     current_cond = tensor[j, :, :]
                     current_cond = current_cond.reshape(202, 236)
@@ -488,15 +488,15 @@ def fig_3(tensor, dimensions):
                         dim2 = current_cond.T @ dim2_vector
 
 
-                        axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
-                        axs[i].plot(dim1[1:30], dim2[1:30], '-', color='blue', label='Other')
-                        axs[i].plot(dim1[30:70], dim2[30:70], '-', color='orange', label='Preparatory')
-                        axs[i].plot(dim1[70:135], dim2[70:135], '-', color='blue', label='Other')
-                        axs[i].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
-                        axs[i].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
+                        axs[c].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
+                        axs[c].plot(dim1[1:30], dim2[1:30], '-', color='blue', label='Other')
+                        axs[c].plot(dim1[30:70], dim2[30:70], '-', color='orange', label='Preparatory')
+                        axs[c].plot(dim1[70:135], dim2[70:135], '-', color='blue', label='Other')
+                        axs[c].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
 
-                        axs[i].set_xlabel(f"Dimension {i + 1}")
-                        axs[i].set_ylabel(f"Dimension {i + 2}")
+                        axs[c].set_xlabel(f"Dimension {i + 1}")
+                        axs[c].set_ylabel(f"Dimension {k + 1}")
 
     plt.tight_layout()
     plt.show()
