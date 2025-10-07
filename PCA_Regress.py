@@ -466,16 +466,14 @@ def fig_3(tensor, dimensions):
     mean_centered = matrix - np.mean(matrix, axis = 0)
     mc_tensor = mean_centered.reshape(tensor.shape)
 
-    dim1 = matrix @ left_vec[:, 0]
-    rows = int(np.ceil(dimensions / 2))
 
-    fig, axs = plt.subplots(2, rows, figsize=(12, 6))
+    fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
     
     for i in range(dimensions):
 
         for j in range(tensor.shape[0]):
-            current_cond = mc_tensor[j, :, :]
+            current_cond = tensor[j, :, :]
             current_cond = current_cond.reshape(202, 236)
 
             if i < dimensions - 1:
