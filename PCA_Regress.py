@@ -482,7 +482,8 @@ def fig_3(tensor, dimensions):
     for i in range(dimensions):
 
         for j in range(tensor.shape[2]):
-            
+            current_cond = tensor[j, :, :]
+            current_cond = current_cond.reshape[202, 236]
             dim1 = tensor[j, :, :] @ left_vec[:, i-1]
             dim2 = tensor[j, :, :] @ left_vec[:, i]
 
