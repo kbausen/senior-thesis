@@ -477,19 +477,21 @@ def fig_3(tensor, dimensions):
         for j in range(tensor.shape[0]):
             current_cond = tensor[j, :, :]
             current_cond = current_cond.reshape(202, 236)
-            dim1 = current_cond.T @ left_vec[:, i]
-            dim2 = current_cond.T @ left_vec[:, i+1]
+
+            if i < dimensions:
+                dim1 = current_cond.T @ left_vec[:, i]
+                dim2 = current_cond.T @ left_vec[:, i+1]
 
 
-            axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
-            axs[i].plot(dim1[1:30], dim2[1:30], '-', color='blue', label='Other')
-            axs[i].plot(dim1[30:70], dim2[30:70], '-', color='orange', label='Preparatory')
-            axs[i].plot(dim1[70:135], dim2[70:135], '-', color='blue', label='Other')
-            axs[i].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
-            axs[i].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
+                axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
+                axs[i].plot(dim1[1:30], dim2[1:30], '-', color='blue', label='Other')
+                axs[i].plot(dim1[30:70], dim2[30:70], '-', color='orange', label='Preparatory')
+                axs[i].plot(dim1[70:135], dim2[70:135], '-', color='blue', label='Other')
+                axs[i].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
+                axs[i].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
 
-            axs[i].set_xlabel(f"Dimension {i + 1}")
-            axs[i].set_ylabel(f"Dimension {i + 2}")
+                axs[i].set_xlabel(f"Dimension {i + 1}")
+                axs[i].set_ylabel(f"Dimension {i + 2}")
 
     plt.tight_layout()
     plt.show()
