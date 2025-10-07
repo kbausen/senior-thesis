@@ -477,8 +477,8 @@ def fig_3(tensor, dimensions):
         for j in range(tensor.shape[2]):
             current_cond = tensor[j, :, :]
             current_cond = current_cond.reshape(202, 236)
-            dim1 = tensor[j, :, :] @ left_vec[:, i]
-            dim2 = tensor[j, :, :] @ left_vec[:, i+1]
+            dim1 = current_cond @ left_vec[:, i]
+            dim2 = current_cond @ left_vec[:, i+1]
 
 
             axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
