@@ -444,7 +444,7 @@ def scaling (tensor):
         # create an array
         data = tensor[i,:,:]
         print(data.shape)
-        normalized = (data).T/(np.amax(data, axis = 0)-np.amin(data, axis = 0))
+        normalized = (data)/(np.amax(data, axis = 0)-np.amin(data, axis = 0))
         print(normalized.shape)
         new_tensor[i,:,:] = normalized
         
