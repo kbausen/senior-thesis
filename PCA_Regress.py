@@ -471,21 +471,14 @@ def fig_3(tensor, dimensions):
 
     fig, axs = plt.subplots(2, rows, figsize=(12, 6))
     axs = axs.flatten()
-
-    # Set up a single set of labels and line handles for the legend
-
-    legend_lines = []
-    legend_labels = ['Start', 'Other', 'Preparatory', 'Movement']
-
-    
     
     for i in range(dimensions):
 
         for j in range(tensor.shape[2]):
             current_cond = tensor[j, :, :]
             current_cond = current_cond.reshape[202, 236]
-            dim1 = tensor[j, :, :] @ left_vec[:, i-1]
-            dim2 = tensor[j, :, :] @ left_vec[:, i]
+            dim1 = tensor[j, :, :] @ left_vec[:, i]
+            dim2 = tensor[j, :, :] @ left_vec[:, i+1]
 
 
             axs[i].plot(dim1[0], dim2[0], 'o', color='red', markersize=8, label='Start')
@@ -495,8 +488,8 @@ def fig_3(tensor, dimensions):
             axs[i].plot(dim1[135:215], dim2[135:215], '-', color='green', label='Movement')
             axs[i].plot(dim1[215:236], dim2[215:236], '-', color='blue', label='Other')
 
-            axs[i].set_xlabel(f"Dimension {i + 2}")
-            axs[i].set_ylabel("Dimension 1")
+            axs[i].set_xlabel(f"Dimension {i + 1}")
+            axs[i].set_ylabel(f"Dimension {i + 2}")
 
     plt.tight_layout()
     plt.show()
