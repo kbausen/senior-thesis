@@ -478,7 +478,7 @@ def fig_3(tensor, dimensions):
             current_cond = mc_tensor[j, :, :]
             current_cond = current_cond.reshape(202, 236)
 
-            if i < dimensions:
+            if i < dimensions - 1:
                 dim1 = current_cond.T @ left_vec[:, i]
                 dim2 = current_cond.T @ left_vec[:, i+1]
 
