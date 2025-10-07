@@ -443,9 +443,9 @@ def scaling (tensor):
     for i in range (tensor.shape[0]):
         # create an array
         data = tensor[i,:,:]
-        print(data.shape)
+
+        # dividing each row (neuron) by the max - min of that row 
         normalized = (data)/(np.amax(data, axis = 0)-np.amin(data, axis = 0))
-        print(normalized.shape)
         new_tensor[i,:,:] = normalized
         
     norm_matrix = shape_matrix(new_tensor)
@@ -462,7 +462,7 @@ def fig_3_mc(tensor, dimensions):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
-    matrix = scaling(tensor)
+    matrix = shape_matrix(tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
     _, left_vec, _ = run_PCA(matrix, dimensions)
 
@@ -508,7 +508,7 @@ def fig_3_mc(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3(tensor, dimensions):
+def fig_3_scaledmc(tensor, dimensions):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -518,7 +518,7 @@ def fig_3(tensor, dimensions):
     """
     matrix = scaling(tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
-    _, left_vec, _ = run_PCA(matrix, dimensions)
+    _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
     
     scaled_tensor = matrix.reshape(tensor.shape)
