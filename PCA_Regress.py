@@ -460,10 +460,11 @@ def fig_3(tensor, dimensions):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
-    matrix = shape_matrix(tensor)
+    matrix = scaling(tensor)
+    mean_centered = matrix - np.mean(matrix, axis = 0)
     _, left_vec, _ = run_PCA(matrix, dimensions)
 
-    mean_centered = matrix - np.mean(matrix, axis = 0)
+    
     mc_tensor = mean_centered.reshape(tensor.shape)
 
 
@@ -480,7 +481,7 @@ def fig_3(tensor, dimensions):
                 dim2_vector = left_vec[:, k]
                
                 for j in range(tensor.shape[0]):
-                    current_cond = tensor[j, :, :]
+                    current_cond = mc_tensor[j, :, :]
                     current_cond = current_cond.reshape(202, 236)
 
                     if i < dimensions - 1:
