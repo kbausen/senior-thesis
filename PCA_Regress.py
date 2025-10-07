@@ -491,7 +491,7 @@ def fig_3(tensor, dimensions):
                         # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
                         axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
-                        axs[c].plot(dim1[120], dim2[120], '0', color='gray', label='Go')
+                        axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
                         axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
