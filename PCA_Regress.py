@@ -522,7 +522,7 @@ def fig_3_scaledmc(tensor, dimensions):
     _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
     
-    scaled_tensor = matrix.reshape(tensor.shape)
+    scaled_tensor = mean_centered.reshape(tensor.shape)
 
 
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
