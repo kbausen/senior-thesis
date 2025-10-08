@@ -495,8 +495,8 @@ def fig_3_mc(tensor, dimensions):
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
                         axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='red', label='Movement')
+                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[215], dim2[215], '-', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
@@ -549,8 +549,8 @@ def fig_3_scaledmc(tensor, dimensions):
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
                         axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='red', label='Movement')
+                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[215], dim2[215], '-', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
@@ -601,8 +601,8 @@ def fig_3(tensor, dimensions):
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
                         axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='red', label='Movement')
+                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[215], dim2[215], '-', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
