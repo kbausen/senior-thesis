@@ -493,9 +493,9 @@ def fig_3_mc(tensor, dimensions):
 
                         # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
+                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
                         axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
@@ -547,9 +547,9 @@ def fig_3_scaledmc(tensor, dimensions):
 
                         # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
+                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
                         axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
@@ -599,9 +599,9 @@ def fig_3(tensor, dimensions):
 
                         # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:80], dim2[30:80], '-', color='blue', label='Preparatory')
+                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:214], dim2[150:214], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
                         axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
@@ -614,3 +614,26 @@ def fig_3(tensor, dimensions):
 
     plt.tight_layout()
     plt.show()
+
+def time_shift(tensor_N, tensor_M, scaling = True, mean_c = True):
+
+    # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
+    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay
+    N_idx = np.r_[30:81, 150:216]
+    M_idx = np.r_[35:86, 155:221]
+    matrix_N = tensor_N[:,:, N_idx]
+    matrix_M = tensor_M[:,:, M_idx]
+
+    if scaling:
+        matrix_N = scaling(tensor_N)
+        matrix_M = scaling(tensor_M)
+    else:
+        matrix_N = shape_matrix(tensor_N)
+        matrix_M = shape_matrix(tensor_M)
+    
+
+    if mean_c:
+        matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
+        matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
+
+    return matrix_N, matrix_M
