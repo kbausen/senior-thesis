@@ -442,9 +442,9 @@ def scaling (tensor):
     new_matrix = shape_matrix(tensor)
 
     # columns max and min 
-    col_max = np.max(new_matrix)
-    col_min = np.min(new_matrix)
-    print(col_max)
+    col_max = np.amax(new_matrix, axis = 0)
+    col_min = np.amin(new_matrix, axis = 0)
+  
 
     # normalizing by their ranges
     norm_matrix = (new_matrix) / (col_max - col_min)
@@ -616,12 +616,6 @@ def fig_3(tensor, dimensions):
 
 def time_shift(tensor_N, tensor_M, scaling = True, mean_c = True):
 
-    # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
-    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay
-    N_idx = np.r_[30:81, 150:216]
-    M_idx = np.r_[35:86, 155:221]
-    matrix_N = tensor_N[:,:, N_idx]
-    matrix_M = tensor_M[:,:, M_idx]
 
     if scaling:
         matrix_N = scaling(tensor_N)
@@ -634,5 +628,26 @@ def time_shift(tensor_N, tensor_M, scaling = True, mean_c = True):
     if mean_c:
         matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
         matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
+    
+    # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
+    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay
+    N_shifted = []
+    M_shifted = []
 
-    return matrix_N, matrix_M
+    for i in range(tensor_N.shape[0]):
+        N_prep_start = 30 + 236 * i
+        N_prep_end = 81 + 236 * i
+        N_move_start = 150 + 236 * i
+        N_move_end = 216 + 236 * i
+        M_prep_start = N_prep_start + 5
+        M_prep_end = N_prep_end + 5
+        M_move_start = N_move_start + 5
+        M_move_end = N_move_end + 5
+
+
+        N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
+        M_idx = np.r_[M_prep_start:M_prep_end, M_move_start:M_move_end]
+        N_shifted = matrix_N[:, N_idx]
+        M_shifted = matrix_M[:, M_idx]
+
+    return N_shifted, M_shifted
