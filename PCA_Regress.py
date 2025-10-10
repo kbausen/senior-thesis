@@ -135,7 +135,7 @@ def amt_var (matrix, rank):
 
     print(f'{frac}% variance explained')
 
-def run_PCA (matrix, rank):
+def run_PCA (matrix, rank, mc = True):
     """ 
     This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
     before). It will then perform a rank k approximation using the specified rank and return the projected data. 
@@ -153,10 +153,15 @@ def run_PCA (matrix, rank):
     U, S_, V_T = svd(matrix)
 
     # create a mean centered matrix
-    mean_centered = matrix - np.mean(matrix, axis = 0)
+    if mc:
+        mean_c = matrix - np.mean(matrix, axis = 0)
+
+        # project the mean centered data onto these PCs to produce a rank k approximation
+        proj = mean_c @  U[:, :rank] 
     
-    # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = mean_centered @  U[:, :rank] 
+    proj = matrix @ U[:,:rank]
+    
+
    
     # takes the dot product of proj_set and V_T to get the rank k approximation, 
     # print(f"proj shape is {proj_set.shape}")
@@ -363,7 +368,7 @@ def best_lam(M, mus_training, neu_training, PCs):
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_mse
 
-def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236): 
+def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236, mc = True): 
     """
     Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -389,8 +394,8 @@ def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236):
     end_condition = start_condition + 236
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(N, N_dim)
-    M_tilde,PCs,_ = run_PCA(M, M_dim)
+    N_tilde,_,_ = run_PCA(N, N_dim, mc)
+    M_tilde,PCs,_ = run_PCA(M, M_dim, mc)
 
     #slicing needed because the times of M and N aren't compatible right now
     # N_tilde = N_tilde[start_condition:end_condition,:]
