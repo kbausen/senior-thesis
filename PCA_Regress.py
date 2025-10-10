@@ -440,11 +440,11 @@ def scaling (tensor):
     """
 
     new_matrix = shape_matrix(tensor)
-    norm_matrix = np.zeros_like(new_matrix)
 
     # columns max and min 
-    col_max = np.max(new_matrix, axis = 0)
-    col_min = np.min(new_matrix, axis = 0)
+    col_max = np.amax(new_matrix, axis = 0)
+    col_min = np.amin(new_matrix, axis = 0)
+    print(col_max.shape)
 
     # normalizing by their ranges
     norm_matrix = (new_matrix) / (col_max - col_min)
