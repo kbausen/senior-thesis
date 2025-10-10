@@ -438,18 +438,18 @@ def scaling (tensor):
     Returns: 
         norm_matrix: a 2D version of tensor (shaped [conditions x time bins, neurons]) which is scaled between 0 and 1 
     """
-    new_tensor = np.zeros_like(tensor)
+
+    new_matrix = shape_matrix(tensor)
+    norm_matrix = np.zeros_like(new_matrix)
+
+    # columns max and min 
+    col_max = np.max(new_matrix, axis = 0)
+    col_min = np.min(new_matrix, axis = 0)
+
+    # normalizing by their ranges
+    norm_matrix = (new_matrix) / (col_max - col_min)
+
     
-    for i in range (tensor.shape[0]):
-        # create an array
-        data = tensor[i,:,:]
-
-        # dividing each row (neuron) by the max - min of that row 
-        normalized = (data)/(np.amax(data, axis = 0)-np.amin(data, axis = 0))
-        new_tensor[i,:,:] = normalized
-        
-    norm_matrix = shape_matrix(new_tensor)
-
     return(norm_matrix)
     
 print("PCA_Regress.py loaded")
