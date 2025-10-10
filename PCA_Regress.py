@@ -444,12 +444,11 @@ def scaling (tensor):
     # columns max and min 
     col_max = np.amax(new_matrix, axis = 0)
     col_min = np.amin(new_matrix, axis = 0)
-    print(col_max.shape)
+    print(col_max)
 
     # normalizing by their ranges
     norm_matrix = (new_matrix) / (col_max - col_min)
 
-    
     return(norm_matrix)
     
 print("PCA_Regress.py loaded")
