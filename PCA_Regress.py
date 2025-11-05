@@ -619,10 +619,10 @@ def fig_3(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def time_shift(tensor_N, tensor_M, scaling = True, mean_c = True):
+def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
 
 
-    if scaling:
+    if scale:
         matrix_N = scaling(tensor_N)
         matrix_M = scaling(tensor_M)
     else:
