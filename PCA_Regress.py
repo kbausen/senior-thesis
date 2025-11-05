@@ -639,6 +639,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
     N_shifted = []
     M_shifted = []
 
+    print(matrix_N.shape)
     for i in range(tensor_N.shape[0]):
         N_prep_start = 30 + 236 * i
         N_prep_end = 81 + 236 * i
