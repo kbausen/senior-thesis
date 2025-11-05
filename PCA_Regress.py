@@ -467,7 +467,7 @@ def fig_3_mc(tensor, dimensions):
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
     matrix = shape_matrix(tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
+    mean_centered = matrix - np.mean(matrix, axis = 1)
     _, left_vec, _ = run_PCA(matrix, dimensions)
 
     
@@ -653,7 +653,6 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
 
         N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
         M_idx = np.r_[M_prep_start:M_prep_end, M_move_start:M_move_end]
-        print(M_idx)
         N_shifted = matrix_N[N_idx, :]
         M_shifted = matrix_M[M_idx, :]
 
