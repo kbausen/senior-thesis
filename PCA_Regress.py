@@ -467,8 +467,8 @@ def fig_3_mc(tensor, dimensions):
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
     matrix = shape_matrix(tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 1)
-    _, left_vec, _ = run_PCA(matrix, dimensions)
+    mean_centered = matrix - np.mean(matrix, axis = 0)
+    _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
     
     mc_tensor = mean_centered.reshape(tensor.shape)
