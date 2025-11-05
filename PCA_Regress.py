@@ -657,7 +657,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
         N_idx -= 1
         M_idx -= 1
         print(N_idx)
-        N_shifted = matrix_N[:, N_idx]
-        M_shifted = matrix_M[:, M_idx]
+        N_shifted = matrix_N[N_idx, :]
+        M_shifted = matrix_M[M_idx, :]
 
     return N_shifted, M_shifted
