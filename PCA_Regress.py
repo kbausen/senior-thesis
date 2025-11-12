@@ -539,7 +539,7 @@ def fig_3_mc(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3_scaledmc(tensor, dimensions, time_bins = 236, conditions = 108):
+def fig_3_scaledmc(tensor, dimensions):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -549,6 +549,7 @@ def fig_3_scaledmc(tensor, dimensions, time_bins = 236, conditions = 108):
     """
     # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
+    conditions, neurons, time_bins = cut_tensor.shape
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
