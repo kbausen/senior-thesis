@@ -563,56 +563,6 @@ def fig_3_cut_t(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3_all(tensor, dimensions):
-    """
-    This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
-
-    Parameters: 
-        tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
-        dimensions: the number of dimensions to project onto (should be between 6 and 10)
-    """
-
-    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
-    matrix = scaling(tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
-
-    # gathering the left vectors
-    _, left_vec, _ = run_PCA(mean_centered, dimensions)
-
-    # starting the figur
-        
-        # first dimension to be compared against
-    dim1_vector = left_vec[:, dim1 - 1]
-    
-    # setting second dimension vector to project the data onto
-    dim2_vector = left_vec[:, dim2 - 1]
-    
-    for j in range(tensor.shape[0]):
-        current_cond = tensor[j, :, :]
-        current_cond = current_cond.reshape(202, 236)
-
-        if i < dimensions - 1:
-            dim1 = current_cond.T @ dim1_vector
-            dim2 = current_cond.T @ dim2_vector
-
-
-            # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
-            # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-            axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
-            axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-            axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-            axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
-            # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
-
-            axs[c].set_xlabel(f"Dimension {i + 1}")
-            axs[c].set_ylabel(f"Dimension {k + 1}")
-
-            c +=1
-
-             
-
-    plt.tight_layout()
-    plt.show()
 
 def fig_3_spec(tensor, dimensions, d1, d2):
     """
