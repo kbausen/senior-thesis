@@ -29,6 +29,32 @@ def shape_matrix (array):
         new_mat[i*time_bins:(i+1)*time_bins, :] = array[i,:,:].T
     return new_mat
 
+def shape_tensor (matrix, conditions, time_bins = None):
+    """ 
+    This function takes in the interpPSTH matrix [conditions x timebins, neurons] and will reshape it to dimensions [conditions, neurons, time bins]
+
+    Parameters: 
+        array: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
+
+    Returns: 
+        new_mat: reshaped the array into a 2 dimension matrix [conditions x timebins, neurons]--making it a tall and skinny array for SVD
+    """
+    time_cond, neurons = matrix.shape
+
+    if time_bins == None: 
+        time_bins = time_cond/conditions
+
+    new_tensor = np.zeros((conditions, neurons, time_bins))
+
+    for i in range(conditions):
+        low_t = i * time_bins
+        high_t = (i + 1) * time_bins
+        new_tensor[i,:,:] = matrix[low_t:high_t, :].T
+    return new_tensor
+
+
+
+
 def svd (matrix, plot = False): 
     """ 
      This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
@@ -513,7 +539,7 @@ def fig_3_mc(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3_scaledmc(tensor, dimensions):
+def fig_3_scaledmc(tensor, dimensions, time_bins = 236, conditions = 108):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -521,31 +547,42 @@ def fig_3_scaledmc(tensor, dimensions):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
-    matrix = scaling(tensor)
+    # using a tensor with only the preparatory and motor activity
+    cut_tensor = time_cut(tensor)
+
+    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
+    matrix = scaling(cut_tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
+
+    # gathering the left vectors
     _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
-    
-    scaled_tensor = mean_centered.reshape(tensor.shape)
+    # returning the scaled, mean centered, and time cut matrix into a tensor  
+    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
 
-
+    # starting the figures
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
     c = 0
     
     for i in range(dimensions - 1):
+        # dimension 2 for comparison
         dim1_vector = left_vec[:,i]
     
         for k in range(dimensions): 
 
             if k != i: 
+                # dimension 2 for projection
                 dim2_vector = left_vec[:, k]
                
-                for j in range(tensor.shape[0]):
+                for j in range(conditions):
                     current_cond = scaled_tensor[j, :, :]
-                    current_cond = current_cond.reshape(202, 236)
 
-                    if i < dimensions - 1:
+                    # just making sure it is 2D and not 3D
+                    current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
+
+                    if i < dimensions - 1 & scaled_tensor.shape[2] == 236:
+                        #projecting the data
                         dim1 = current_cond.T @ dim1_vector
                         dim2 = current_cond.T @ dim2_vector
 
@@ -560,6 +597,17 @@ def fig_3_scaledmc(tensor, dimensions):
                         axs[c].set_xlabel(f"Dimension {i + 1}")
                         axs[c].set_ylabel(f"Dimension {k + 1}")
 
+                    elif i < dimensions - 1: 
+                        # projecting the data
+                        dim1 = current_cond.T @ dim1_vector
+                        dim2 = current_cond.T @ dim2_vector
+
+                        axs[c].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
+                        axs[c].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
+                        axs[c].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
+
+
                 c +=1
 
              
@@ -567,7 +615,7 @@ def fig_3_scaledmc(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3(tensor, dimensions):
+def fig_3(tensor, dimensions, time_bins = 236, conditions = 108):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -575,21 +623,30 @@ def fig_3(tensor, dimensions):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
-    matrix = scaling(tensor)
+    # using a tensor with only the preparatory and motor activity
+    cut_tensor = time_cut(tensor)
+
+    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
+    matrix = scaling(cut_tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
+
+    # gathering the left vectors
     _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
-
+    # starting the figures 
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
     c = 0
     
     for i in range(dimensions - 1):
+        
+        # first dimension to be compared against
         dim1_vector = left_vec[:,i]
     
         for k in range(dimensions): 
 
             if k != i: 
+                # setting second dimension vector to project the data onto
                 dim2_vector = left_vec[:, k]
                
                 for j in range(tensor.shape[0]):
@@ -619,8 +676,30 @@ def fig_3(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
+def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False):
+    """
+    This function will both splice the data based on critical time events referenced in the paper. This is 
+    necessary before PCA or anything can be run on the data 
 
+    Parameters: 
+        tensor_N: This is the inter_PSTH for the N matrix in the equation M = WN
+        tensor_M: this is the inter_PSTH for the M matrix in the equation M = WN
+        scale: this boolean will scale the data from 0 and 1 if True 
+        mean_c : this boolean will mean center the tensor data if True
+        tensors: this boolean will return the spliced tensor [conditions, neurons, new time bins], with all other 
+            changes selected above   
+    
+    Return: 
+        N_adj_tensor: the inter_PSTH tensor [conditions, neurons, preparatory time] with only preparatory activity, 
+            and requested scaling and mean centering
+        M_adj_tensor: the inter_PSTH tensor [conditions, neurons/muscle, movement time] with only motor period 
+            activity, and requested scaling and mean centering
+        N_shifted: the inter_PSTH array [conditions x preparatory time, neurons] with only preparatory activity, 
+            and requested scaling and mean centering
+        M_adj_tensor: the inter_PSTH tensor [conditions x movement time, neurons/muscle ] with only motor period 
+            activity, and requested scaling and mean centering
+
+    """
 
     if scale:
         matrix_N = scaling(tensor_N)
@@ -629,7 +708,6 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
         matrix_N = shape_matrix(tensor_N)
         matrix_M = shape_matrix(tensor_M)
     
-
     if mean_c:
         matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
         matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
@@ -641,19 +719,47 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True):
 
     print(matrix_M.shape)
     for i in range(tensor_N.shape[0]):
+
+        # Saving indexes for the range of critical time periods in matrix N
         N_prep_start = 30 + 236 * i
         N_prep_end = 81 + 236 * i
         N_move_start = 150 + 236 * i
         N_move_end = 216 + 236 * i
+
+        # using the cues calculated for the N matrix and shifting them 50 ms further for the temporal delay
         M_prep_start = N_prep_start + 5
         M_prep_end = N_prep_end + 5
         M_move_start = N_move_start + 5
         M_move_end = N_move_end + 5
 
-
+        # Concatenating the ranges for a singular input
         N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
         M_idx = np.r_[M_prep_start:M_prep_end, M_move_start:M_move_end]
+
+
         N_shifted = matrix_N[N_idx, :]
         M_shifted = matrix_M[M_idx, :]
+    
+    # in case 
+    if tensors:
+        N_adj_tensor = shape_tensor(N_shifted)
+        M_adj_tensor = shape_tensor(M_shifted)
+        return N_adj_tensor, M_adj_tensor
 
     return N_shifted, M_shifted
+
+def time_cut (tensor, go_cue = True):
+    """
+    Will splice out the times for preparatory activity and motor activity, used for figure 3. 
+
+    Parameters: 
+        tensor: inter_PSTH tensor [conditions, neurons, time bins]
+
+    Returns: 
+        cut_tensor: inter_PSTH tensor with only time bins during preparatory activity 
+    """
+    if go_cue:
+        N_idx = np.r_[30:80, 120, 150:216]
+    else:
+        N_idx = np.r_[30:80, 150:216]
+    return tensor[:,:, N_idx]
