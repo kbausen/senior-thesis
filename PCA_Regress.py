@@ -42,7 +42,7 @@ def shape_tensor (matrix, conditions, time_bins = None):
     time_cond, neurons = matrix.shape
 
     if time_bins == None: 
-        time_bins = time_cond/conditions
+        time_bins = int(time_cond/conditions)
 
     new_tensor = np.zeros((conditions, neurons, time_bins))
 
