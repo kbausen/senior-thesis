@@ -660,8 +660,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
             plt.plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
             plt.plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
 
-            plt.set_xlabel(f"Dimension {d1}")
-            plt.set_ylabel(f"Dimension {d2}")
+            plt.xlabel(f"Dimension {d1}")
+            plt.label(f"Dimension {d2}")
 
         else: 
             plt.plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
@@ -669,8 +669,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
             plt.plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
             plt.plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
 
-            plt.set_xlabel(f"Dimension {d1}")
-            plt.set_ylabel(f"Dimension {d2}")
+            plt.xlabel(f"Dimension {d1}")
+            plt.ylabel(f"Dimension {d2}")
 
     plt.tight_layout()
     plt.show()
