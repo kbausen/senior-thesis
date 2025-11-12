@@ -484,62 +484,7 @@ def scaling (tensor):
     
 print("PCA_Regress.py loaded")
 
-def fig_3_mc(tensor, dimensions):
-    """
-    This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
-
-    Parameters: 
-        tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
-        dimensions: the number of dimensions to project onto (should be between 6 and 10)
-    """
-    matrix = shape_matrix(tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
-    _, left_vec, _ = run_PCA(mean_centered, dimensions)
-
-    
-    mc_tensor = mean_centered.reshape(tensor.shape)
-
-
-    fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
-    axs = axs.flatten()
-    c = 0
-    
-    for i in range(dimensions - 1):
-        dim1_vector = left_vec[:,i]
-    
-        for k in range(dimensions): 
-
-            if k != i: 
-                dim2_vector = left_vec[:, k]
-               
-                for j in range(tensor.shape[0]):
-                    current_cond = mc_tensor[j, :, :]
-                    current_cond = current_cond.reshape(202, 236)
-
-                    if i < dimensions - 1:
-                        dim1 = current_cond.T @ dim1_vector
-                        dim2 = current_cond.T @ dim2_vector
-
-
-                        # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
-                        # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
-                        axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
-                        # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
-
-                        axs[c].set_xlabel(f"Dimension {i + 1}")
-                        axs[c].set_ylabel(f"Dimension {k + 1}")
-
-                c +=1
-
-             
-
-    plt.tight_layout()
-    plt.show()
-
-def fig_3_scaledmc(tensor, dimensions):
+def fig_3_cut_t(tensor, dimensions):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -608,6 +553,8 @@ def fig_3_scaledmc(tensor, dimensions):
                         axs[c].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
                         axs[c].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
 
+                        axs[c].set_xlabel(f"Dimension {i + 1}")
+                        axs[c].set_ylabel(f"Dimension {k + 1}")
 
                 c +=1
 
@@ -616,7 +563,7 @@ def fig_3_scaledmc(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3(tensor, dimensions, time_bins = 236, conditions = 108):
+def fig_3_all(tensor, dimensions, time_bins = 236, conditions = 108):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -624,11 +571,9 @@ def fig_3(tensor, dimensions, time_bins = 236, conditions = 108):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
-    # using a tensor with only the preparatory and motor activity
-    cut_tensor = time_cut(tensor)
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
-    matrix = scaling(cut_tensor)
+    matrix = scaling(tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
 
     # gathering the left vectors
