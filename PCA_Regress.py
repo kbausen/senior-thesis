@@ -494,7 +494,7 @@ def fig_3_cut_t(tensor, dimensions):
     """
     # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
-    conditions, neurons, time_bins = cut_tensor.shape
+    conditions, _, time_bins = cut_tensor.shape
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
@@ -512,7 +512,7 @@ def fig_3_cut_t(tensor, dimensions):
     c = 0
     
     for i in range(dimensions - 1):
-        # dimension 2 for comparison
+        # dimension 1 for projection
         dim1_vector = left_vec[:,i]
     
         for k in range(dimensions): 
@@ -563,7 +563,7 @@ def fig_3_cut_t(tensor, dimensions):
     plt.tight_layout()
     plt.show()
 
-def fig_3_all(tensor, dimensions, time_bins = 236, conditions = 108):
+def fig_3_all(tensor, dimensions):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
 
@@ -579,48 +579,103 @@ def fig_3_all(tensor, dimensions, time_bins = 236, conditions = 108):
     # gathering the left vectors
     _, left_vec, _ = run_PCA(mean_centered, dimensions)
 
-    # starting the figures 
-    fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
-    axs = axs.flatten()
-    c = 0
-    
-    for i in range(dimensions - 1):
+    # starting the figur
         
         # first dimension to be compared against
-        dim1_vector = left_vec[:,i]
+    dim1_vector = left_vec[:, dim1 - 1]
     
-        for k in range(dimensions): 
+    # setting second dimension vector to project the data onto
+    dim2_vector = left_vec[:, dim2 - 1]
+    
+    for j in range(tensor.shape[0]):
+        current_cond = tensor[j, :, :]
+        current_cond = current_cond.reshape(202, 236)
 
-            if k != i: 
-                # setting second dimension vector to project the data onto
-                dim2_vector = left_vec[:, k]
-               
-                for j in range(tensor.shape[0]):
-                    current_cond = tensor[j, :, :]
-                    current_cond = current_cond.reshape(202, 236)
-
-                    if i < dimensions - 1:
-                        dim1 = current_cond.T @ dim1_vector
-                        dim2 = current_cond.T @ dim2_vector
+        if i < dimensions - 1:
+            dim1 = current_cond.T @ dim1_vector
+            dim2 = current_cond.T @ dim2_vector
 
 
-                        # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
-                        # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
-                        axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
-                        # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
+            # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
+            # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
+            axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
+            axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
+            axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
+            axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
+            # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
-                        axs[c].set_xlabel(f"Dimension {i + 1}")
-                        axs[c].set_ylabel(f"Dimension {k + 1}")
+            axs[c].set_xlabel(f"Dimension {i + 1}")
+            axs[c].set_ylabel(f"Dimension {k + 1}")
 
-                c +=1
+            c +=1
 
              
 
     plt.tight_layout()
     plt.show()
+
+def fig_3_spec(tensor, dimensions, d1, d2):
+    """
+    This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper. 
+
+    Parameters: 
+        tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
+        dimensions: the number of dimensions to project onto (should be between 6 and 10)
+        d1: the first PC selected for projection (the range is 1 through dimensions)
+        d2: the second PC selected for projection (the range is 1 through dimensions)
+    """
+   # using a tensor with only the preparatory and motor activity
+    cut_tensor = time_cut(tensor)
+    conditions, _, time_bins = cut_tensor.shape
+
+    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
+    matrix = scaling(cut_tensor)
+    mean_centered = matrix - np.mean(matrix, axis = 0)
+
+    # gathering the left vectors
+    _, left_vec, _ = run_PCA(mean_centered, dimensions)
+
+    # returning the scaled, mean centered, and time cut matrix into a tensor  
+    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
+
+    # dimension 1 for projection
+    dim1_vector = left_vec[:,i]
+
+    # dimension 2 for projection
+    dim2_vector = left_vec[:, k]
+    
+    for j in range(conditions):
+        current_cond = scaled_tensor[j, :, :]
+
+        # just making sure it is 2D and not 3D
+        current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
+        
+        # projecting the data
+        dim1 = current_cond.T @ dim1_vector
+        dim2 = current_cond.T @ dim2_vector
+
+        if scaled_tensor.shape[2] == 236:
+            plt.plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
+            plt.plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
+            plt.plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
+            plt.plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
+
+            plt.set_xlabel(f"Dimension {i + 1}")
+            plt.set_ylabel(f"Dimension {k + 1}")
+
+        else: 
+            plt.plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
+            plt.plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
+            plt.plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
+            plt.plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
+
+            plt.set_xlabel(f"Dimension {i + 1}")
+            plt.set_ylabel(f"Dimension {k + 1}")
+
+    plt.tight_layout()
+    plt.show()
+
+
 
 def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False):
     """
