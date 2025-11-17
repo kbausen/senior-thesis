@@ -659,16 +659,11 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
         matrix_N = shape_matrix(tensor_N)
         matrix_M = shape_matrix(tensor_M)
     
-    if mean_c:
-        matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
-        matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
-    
     # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
     # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay
     N_shifted = []
     M_shifted = []
 
-    print(matrix_M.shape)
     for i in range(tensor_N.shape[0]):
 
         # Saving indexes for the range of critical time periods in matrix N
@@ -691,6 +686,10 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
         N_shifted = matrix_N[N_idx, :]
         M_shifted = matrix_M[M_idx, :]
     
+    if mean_c:
+        matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
+        matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
+
     # in case 
     if tensors:
         N_adj_tensor = shape_tensor(N_shifted)
@@ -705,6 +704,7 @@ def time_cut (tensor, go_cue = True):
 
     Parameters: 
         tensor: inter_PSTH tensor [conditions, neurons, time bins]
+        go_cue: this is a parameter which will include the time point at the go que
 
     Returns: 
         cut_tensor: inter_PSTH tensor with only time bins during preparatory activity 
@@ -714,3 +714,27 @@ def time_cut (tensor, go_cue = True):
     else:
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
+
+def fig_4 (tensor_N, tensor_M):
+    """
+    
+    """
+    # scaling, mean centering, and involving only the time periods needed for regression
+    regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = True)
+    conditions, _, time_bins = regress_N.shape
+
+    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
+    matrix_N = scaling(regress_N)
+    matrix_M = scaling(regress_M)
+    mean_centered = matrix - np.mean(matrix, axis = 0)
+
+    # gathering the left vectors
+    _, left_vec, _ = run_PCA(mean_centered, dimensions)
+
+    # returning the scaled, mean centered, and time cut matrix into a tensor  
+    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
+
+    # starting the figures
+    fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
+    axs = axs.flatten()
+    c = 0
