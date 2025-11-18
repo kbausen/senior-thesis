@@ -634,13 +634,17 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
             changes selected above   
     
     Return: 
-        N_adj_tensor: the inter_PSTH tensor [conditions, neurons, preparatory time] with preparatory activity, 
+        N_adj_tensor: the inter_PSTH tensor [conditions, neurons, preparatory and movement time] with preparatory activity, 
             movement period activity, and requested scaling and mean centering
+        N_move_tensor: the inter_PSTH tensor [conditions, neurons, movement time] with movement period activity, and 
+            requested scaling and mean centering
         M_adj_tensor: the inter_PSTH tensor [conditions, neurons/muscle, movement time] with only motor period 
             activity, and requested scaling and mean centering
-        N_shifted: the inter_PSTH array [conditions x preparatory time & movement time, neurons] with preparatory activity, 
+        N_cut_mc: the inter_PSTH array [conditions x preparatory time & movement time, neurons] with preparatory activity, 
             movement activity, and requested scaling and mean centering
-        M_adj_tensor: the inter_PSTH tensor [conditions x movement time, neurons/muscle ] with only motor period 
+        N_move_mc: the inter_PSTH array [conditions x movement time, neurons] with movement activity, and requested scaling 
+            and mean centering
+        M_cut_mc: the inter_PSTH array [conditions x movement time, neurons/muscle ] with only movement period 
             activity, and requested scaling and mean centering
 
     """
@@ -655,34 +659,42 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
+    # this is needed for the regression to find W tilde
+    N_move = tensor_N[:,:, N_move_start:N_move_end]
+
     # cutting the M tensor with the times in preparatory period and movement period
     M_move_start = N_move_start + 5
     M_move_end = N_move_end + 5
     M_idx = np.r_[M_move_start:M_move_end]
-    M_cut = tensor_N[:,:, M_idx]
+    M_cut = tensor_M[:,:, M_idx]
     
     # shaping it into a matrix in case not scaling 
     N_cut_matrix = shape_matrix(N_cut)
+    N_move_matrix = shape_matrix(N_move)
     M_cut_matrix = shape_matrix(M_cut)
    
     if scale:
         N_cut_scale = scaling(N_cut)
+        N_move_scale = scaling(N_move)
         M_cut_scale = scaling(M_cut)
 
     if mean_c & scale:
         N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
+        N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
         M_cut_mc = M_cut_scale - np.mean(M_cut_scale, axis = 0)
     elif mean_c:
         N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
+        N_move_mc = N_move_matrix - np.mean(N_move_matrix, axis = 0)
         M_cut_mc = M_cut_matrix - np.mean(M_cut_matrix, axis = 0)
     
     # in case want back in tensor form for mean centered and scaled 
     if tensors:
         N_adj_tensor = shape_tensor(N_cut_mc)
+        N_move_tensor = shape_tensor(N_move_mc)
         M_adj_tensor = shape_tensor(M_cut_mc)
-        return N_adj_tensor, M_adj_tensor
+        return N_adj_tensor, N_move_tensor, M_adj_tensor
 
-    return N_cut_mc, M_cut_mc
+    return N_cut_mc, N_move_mc, M_cut_mc
 
 def time_cut (tensor, go_cue = True):
     """
@@ -705,14 +717,11 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     """
     
     """
-    # scaling, mean centering, and involving only the time periods needed for regression
-    regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = True)
+    # scaling, mean centering, and involving only the time periods needed for regression (the movement)
+    _, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     conditions, _, time_bins = regress_N.shape
 
     # running through ridge regression 
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
 
-    # starting the figures
-    fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
-    axs = axs.flatten()
-    c = 0
+    return W 
