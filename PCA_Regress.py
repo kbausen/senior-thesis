@@ -394,7 +394,7 @@ def best_lam(M, mus_training, neu_training, PCs):
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_mse
 
-def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236, mc = True): 
+def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
     """
     Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -414,19 +414,12 @@ def r_regress (M, N, condition, M_dim = 3, N_dim = 6, num_bins = 236, mc = True)
         R_squared: one value of R squared for every column of M_hat
     
     """
-    
-    
-    start_condition = (condition - 1) * num_bins
-    end_condition = start_condition + 236
 
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(N, N_dim, mc)
     M_tilde,PCs,_ = run_PCA(M, M_dim, mc)
 
-    #slicing needed because the times of M and N aren't compatible right now
-    # N_tilde = N_tilde[start_condition:end_condition,:]
-    # M_tilde = M_tilde[start_condition:end_condition,:]
-
+    # 
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
     lam, _ = best_lam(M_tilde, N_tilde, M_tilde, PCs)
@@ -641,62 +634,55 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
             changes selected above   
     
     Return: 
-        N_adj_tensor: the inter_PSTH tensor [conditions, neurons, preparatory time] with only preparatory activity, 
-            and requested scaling and mean centering
+        N_adj_tensor: the inter_PSTH tensor [conditions, neurons, preparatory time] with preparatory activity, 
+            movement period activity, and requested scaling and mean centering
         M_adj_tensor: the inter_PSTH tensor [conditions, neurons/muscle, movement time] with only motor period 
             activity, and requested scaling and mean centering
-        N_shifted: the inter_PSTH array [conditions x preparatory time, neurons] with only preparatory activity, 
-            and requested scaling and mean centering
+        N_shifted: the inter_PSTH array [conditions x preparatory time & movement time, neurons] with preparatory activity, 
+            movement activity, and requested scaling and mean centering
         M_adj_tensor: the inter_PSTH tensor [conditions x movement time, neurons/muscle ] with only motor period 
             activity, and requested scaling and mean centering
 
     """
-
-    if scale:
-        matrix_N = scaling(tensor_N)
-        matrix_M = scaling(tensor_M)
-    else:
-        matrix_N = shape_matrix(tensor_N)
-        matrix_M = shape_matrix(tensor_M)
-    
     # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
-    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay
-    N_shifted = []
-    M_shifted = []
+    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay and only includes movement 
+    # data
+    # cutting the N tensor with the times in preparatory period and movement period
+    N_prep_start = 30
+    N_prep_end = 80 
+    N_move_start = 150 
+    N_move_end = 216 
+    N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
+    N_cut = tensor_N[:,:, N_idx]
 
-    for i in range(tensor_N.shape[0]):
-
-        # Saving indexes for the range of critical time periods in matrix N
-        N_prep_start = 30 + 236 * i
-        N_prep_end = 81 + 236 * i
-        N_move_start = 150 + 236 * i
-        N_move_end = 216 + 236 * i
-
-        # using the cues calculated for the N matrix and shifting them 50 ms further for the temporal delay
-        M_prep_start = N_prep_start + 5
-        M_prep_end = N_prep_end + 5
-        M_move_start = N_move_start + 5
-        M_move_end = N_move_end + 5
-
-        # Concatenating the ranges for a singular input
-        N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
-        M_idx = np.r_[M_prep_start:M_prep_end, M_move_start:M_move_end]
-
-
-        N_shifted = matrix_N[N_idx, :]
-        M_shifted = matrix_M[M_idx, :]
+    # cutting the M tensor with the times in preparatory period and movement period
+    M_move_start = N_move_start + 5
+    M_move_end = N_move_end + 5
+    M_idx = np.r_[M_move_start:M_move_end]
+    M_cut = tensor_N[:,:, M_idx]
     
-    if mean_c:
-        matrix_N = matrix_N - np.mean(matrix_N, axis = 0)
-        matrix_M = matrix_M - np.mean(matrix_M, axis = 0)
+    # shaping it into a matrix in case not scaling 
+    N_cut_matrix = shape_matrix(N_cut)
+    M_cut_matrix = shape_matrix(M_cut)
+   
+    if scale:
+        N_cut_scale = scaling(N_cut)
+        M_cut_scale = scaling(M_cut)
 
-    # in case 
+    if mean_c & scale:
+        N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
+        M_cut_mc = M_cut_scale - np.mean(M_cut_scale, axis = 0)
+    elif mean_c:
+        N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
+        M_cut_mc = M_cut_matrix - np.mean(M_cut_matrix, axis = 0)
+    
+    # in case want back in tensor form for mean centered and scaled 
     if tensors:
-        N_adj_tensor = shape_tensor(N_shifted)
-        M_adj_tensor = shape_tensor(M_shifted)
+        N_adj_tensor = shape_tensor(N_cut_mc)
+        M_adj_tensor = shape_tensor(M_cut_mc)
         return N_adj_tensor, M_adj_tensor
 
-    return N_shifted, M_shifted
+    return N_cut_mc, M_cut_mc
 
 def time_cut (tensor, go_cue = True):
     """
@@ -715,7 +701,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M):
+def fig_4 (tensor_N, tensor_M, dimensions = 6):
     """
     
     """
@@ -723,16 +709,8 @@ def fig_4 (tensor_N, tensor_M):
     regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = True)
     conditions, _, time_bins = regress_N.shape
 
-    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
-    matrix_N = scaling(regress_N)
-    matrix_M = scaling(regress_M)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
-
-    # gathering the left vectors
-    _, left_vec, _ = run_PCA(mean_centered, dimensions)
-
-    # returning the scaled, mean centered, and time cut matrix into a tensor  
-    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
+    # running through ridge regression 
+    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
 
     # starting the figures
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
