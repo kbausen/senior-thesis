@@ -717,9 +717,12 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     """
     
     """
+    cond, neu, _ = tensor_N.shape
+
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     proj_N, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
-    conditions, _, time_bins = regress_N.shape
+    _, time_ct = regress_N.shape
+    time_bins = int(time_ct / cond)
 
     # running through ridge regression 
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
