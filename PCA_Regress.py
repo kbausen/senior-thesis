@@ -294,7 +294,7 @@ def neu_recon (matrix, dimensions):
     recon = mean_sub @ left_vec @ left_vec.T
     return recon
 
-def mse (true_values, predicted_values):
+def mse_fun(true_values, predicted_values):
     """
     This function computes the mean squared error between the true values and the predicted values.
 
@@ -381,7 +381,7 @@ def best_lam(M, mus_training, neu_training, PCs):
             check = test_neu @ W_hat
             
             # Calculate MSE for this prediction
-            mse = mse(test_mus, check)
+            mse = mse_fun(test_mus, check)
             np.append(mse_vals, mse)
 
             # Update best lambda if current MSE is lower than previous minimum
@@ -446,7 +446,7 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
     M_hat_recon = M_hat @ PCs.T 
 
     # calcualting mean squared error of the reconstruction 
-    MSE = mse(M, M_hat_recon)
+    MSE = mse_fun(M, M_hat_recon)
     
     
     return W, M_hat, M_hat_recon, R_squared, MSE
