@@ -319,6 +319,7 @@ def regress (train_M, train_N, lam):
         R_squared: numpy array of shape (n_features,) containing the R-squared values for each feature
         MSE: mean squared error of the predictions
     """
+    print("regress")
     
     # compute the covariance matrix
     C = train_N.T @ train_N
@@ -351,6 +352,8 @@ def best_lam(M, mus_training, neu_training, PCs):
         best_lambda: the best lambda value found during cross-validation
         mse: the mean squared error for the best lambda
     """
+
+    print("made it to best_lam")
     # Define a range of lambda values to test
     lambdas = np.logspace(-4, 4, 100)
     
@@ -414,6 +417,7 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
         R_squared: one value of R squared for every column of M_hat
     
     """
+    print("made it to r_regress")
 
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(N, N_dim, mc)
@@ -717,7 +721,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     """
     
     """
-    cond, neu, _ = tensor_N.shape
+    cond, _, _ = tensor_N.shape
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     proj_N, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
