@@ -377,10 +377,6 @@ def best_lam(mus_training, neu_training):
             
 
             # Fit a ridge regression model with the current lambda
-            print("----")
-            print("train_mus:", train_mus.shape, "dtype", train_mus.dtype)
-            print("train_neu:", train_neu.shape, "dtype", train_neu.dtype)
-            print("lam:", lam)
             W_hat= regress(train_mus, train_neu, lam)[0]
             
             
@@ -397,7 +393,7 @@ def best_lam(mus_training, neu_training):
             min_mse = mean_mse
             best_lambda = lam
     
-
+    print(">>> best_lam returning:", best_lambda)
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_mse
 
