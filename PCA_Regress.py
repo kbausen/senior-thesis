@@ -358,7 +358,7 @@ def best_lam(mus_training, neu_training, time_bins):
 
 
     # Define a range of lambda values to test
-    lambdas = np.logspace(-4, 4, 100)
+    lambdas = np.logspace(-2, 3, 20)
     
     # Initialize variables to store the best lambda and its corresponding MSE
     best_lambda = None
