@@ -354,7 +354,7 @@ def best_lam(mus_training, neu_training, time_bins):
     """
 
     print("made it to best_lam")
-    conds = int(neu_training[0] / time_bins)
+    conds = int(neu_training.shape[0] / time_bins)
 
 
     # Define a range of lambda values to test
@@ -383,7 +383,6 @@ def best_lam(mus_training, neu_training, time_bins):
 
             # Fit a ridge regression model with the current lambda
             W_hat= regress(train_mus, train_neu, lam)[0]
-            
             
             # Predict on the test sample
             check = test_neu @ W_hat
