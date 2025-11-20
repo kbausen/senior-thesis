@@ -427,6 +427,8 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
     N_tilde,_,_ = run_PCA(N, N_dim, mc)
     M_tilde,PCs,_ = run_PCA(M, M_dim, mc)
 
+    print(N_tilde.shape)
+    print(M_tilde.shape)
     # 
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
