@@ -389,10 +389,11 @@ def best_lam(mus_training, neu_training):
             
             # Calculate MSE for this prediction
             mse = mse_fun(test_mus, check)
-            np.append(mse_vals, mse)
+            mse_vals.append(mse)
 
-            # Update best lambda if current MSE is lower than previous minimum
+        # Update best lambda if current MSE is lower than previous minimum
         mean_mse = np.mean(mse_vals)
+        
         if mean_mse < min_mse and lam != None:
             min_mse = mean_mse
             best_lambda = lam
