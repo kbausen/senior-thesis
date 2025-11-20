@@ -338,7 +338,7 @@ def regress (train_M, train_N, lam):
 
     return W, M_hat, R_squared
 
-def best_lam(M, mus_training, neu_training, PCs):
+def best_lam(mus_training, neu_training):
     """
     This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
     value and the mean squared error for that lambda.
@@ -432,7 +432,7 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
     # 
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
-    lam, _ = best_lam(M_tilde, N_tilde, M_tilde, PCs)
+    lam, _ = best_lam(M_tilde, N_tilde)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
     W = np.linalg.solve(np.linalg.inv(N_tilde_cov + lam * I), N_tilde.T @ M_tilde)
