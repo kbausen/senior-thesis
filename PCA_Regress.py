@@ -365,7 +365,7 @@ def best_lam(mus_training, neu_training):
     # Perform cross-validation
     for lam in lambdas:
         mse_vals = []
-        for i in range(neu_training.shape[1]):
+        for i in range(neu_training.shape[0]):
 
             # Leave-one-out cross-validation: use all but one sample for training
             train_neu = np.delete(neu_training, i, axis=0)
@@ -377,10 +377,6 @@ def best_lam(mus_training, neu_training):
             
 
             # Fit a ridge regression model with the current lambda
-            print("lam:", lam)
-            print("train_mus shape:", train_mus.shape)
-            print("train_neu shape:", train_neu.shape)
-
             W_hat= regress(train_mus, train_neu, lam)[0]
             
             
