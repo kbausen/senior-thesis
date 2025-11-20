@@ -377,6 +377,10 @@ def best_lam(M, mus_training, neu_training, PCs):
             
 
             # Fit a ridge regression model with the current lambda
+            print("----")
+            print("train_mus:", train_mus.shape, "dtype", train_mus.dtype)
+            print("train_neu:", train_neu.shape, "dtype", train_neu.dtype)
+            print("lam:", lam)
             W_hat= regress(train_mus, train_neu, lam)[0]
             
             
