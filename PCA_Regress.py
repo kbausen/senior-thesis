@@ -371,12 +371,16 @@ def best_lam(mus_training, neu_training):
             train_neu = np.delete(neu_training, i, axis=0)
             train_mus = np.delete(mus_training, i, axis=0)
 
-            test_neu = neu_training[i, :]
-            test_mus = mus_training[i, :]
+            test_neu = neu_training[i:i+1, :]
+            test_mus = mus_training[i:i+1, :]
 
             
 
             # Fit a ridge regression model with the current lambda
+            print("lam:", lam)
+            print("train_mus shape:", train_mus.shape)
+            print("train_neu shape:", train_neu.shape)
+
             W_hat= regress(train_mus, train_neu, lam)[0]
             
             
