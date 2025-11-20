@@ -393,7 +393,7 @@ def best_lam(mus_training, neu_training):
 
             # Update best lambda if current MSE is lower than previous minimum
         mean_mse = np.mean(mse_vals)
-        if mean_mse < min_mse & lam != None:
+        if mean_mse < min_mse and lam != None:
             min_mse = mean_mse
             best_lambda = lam
     
