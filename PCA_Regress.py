@@ -338,7 +338,7 @@ def regress (train_M, train_N, lam):
 
     return W, M_hat, R_squared
 
-def best_lam(mus_training, neu_training):
+def best_lam(mus_training, neu_training, time_bins):
     """
     This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
     value and the mean squared error for that lambda.
@@ -354,6 +354,9 @@ def best_lam(mus_training, neu_training):
     """
 
     print("made it to best_lam")
+    conds = int(neu_training[0] / time_bins)
+
+
     # Define a range of lambda values to test
     lambdas = np.logspace(-4, 4, 100)
     
@@ -365,16 +368,18 @@ def best_lam(mus_training, neu_training):
     # Perform cross-validation
     for lam in lambdas:
         mse_vals = []
-        for i in range(neu_training.shape[0]):
+        for i in range(conds):
 
-            # Leave-one-out cross-validation: use all but one sample for training
-            train_neu = np.delete(neu_training, i, axis=0)
-            train_mus = np.delete(mus_training, i, axis=0)
+            start = i * time_bins
+            end   = (i + 1) * time_bins
 
-            test_neu = neu_training[i:i+1, :]
-            test_mus = mus_training[i:i+1, :]
+            # test block = entire condition
+            test_mus = mus_training[start:end, :]
+            test_neu = neu_training[start:end, :]
 
-            
+            # train = all rows except this block
+            train_mus = np.concatenate([mus_training[:start], mus_training[end:]], axis=0)
+            train_neu = np.concatenate([neu_training[:start], neu_training[end:]], axis=0)          
 
             # Fit a ridge regression model with the current lambda
             W_hat= regress(train_mus, train_neu, lam)[0]
@@ -429,7 +434,7 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
     # 
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
-    lam, _ = best_lam(M_tilde, N_tilde)
+    lam, _ = best_lam(M_tilde, N_tilde, num_bins)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
     W = np.linalg.solve(np.linalg.inv(N_tilde_cov + lam * I), N_tilde.T @ M_tilde)
