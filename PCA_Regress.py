@@ -344,8 +344,8 @@ def best_lam(mus_training, neu_training):
     value and the mean squared error for that lambda.
 
     Parameters: 
-        mus_training: a 2D numpy array of shape [rank, muscles] which is the projection onto the first rank PCs
-        neu_training: a 2D numpy array of shape [rank, neurons] which is the projection onto the first rank PCs
+        mus_training: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
+        neu_training: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
         M: the original muscle data of shape [conditions x time bins, muscles]
 
     Returns: 
@@ -365,7 +365,7 @@ def best_lam(mus_training, neu_training):
     # Perform cross-validation
     for lam in lambdas:
         mse_vals = []
-        for i in range(neu_training.shape[0]):
+        for i in range(neu_training.shape[1]):
 
             # Leave-one-out cross-validation: use all but one sample for training
             train_neu = np.delete(neu_training, i, axis=0)
