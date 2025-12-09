@@ -739,7 +739,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
-    time_ct_neu = regress_N[0]
+    time_ct_neu = regress_N.shape [0]
 
     # how many time bins are included in the movement period 
     time_bins = int(time_ct / cond)
