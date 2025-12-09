@@ -463,7 +463,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     M_hat_recon = M_hat @ PCs.T 
 
     # calcualting mean squared error of the reconstruction 
-    MSE = mse_fun(M, M_hat_recon)
+    MSE = mse_fun(M_tilde, M_hat_recon)
     
     
     return W, M_hat, M_hat_recon, R_squared, MSE
