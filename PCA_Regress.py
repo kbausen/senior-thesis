@@ -415,7 +415,7 @@ def best_lam(mus_rank, neu_rank, time_bins):
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_rmse
 
-def r_regress (N_tilde, M_tilde, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
+def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
     """
     Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -435,7 +435,6 @@ def r_regress (N_tilde, M_tilde, N_dim = 6, M_dim = 3, num_bins = 236, mc = Fals
         R_squared: one value of R squared for every column of M_hat
     
     """
-
 
     # Calling best lambda
     N_tilde_cov = N_tilde.T @ N_tilde
@@ -762,6 +761,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, num_bins = time_bins, mc = False)
+    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
     return W, M_tilde, M_hat
