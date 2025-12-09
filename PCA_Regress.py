@@ -415,7 +415,7 @@ def best_lam(mus_rank, neu_rank, time_bins):
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_rmse
 
-def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
+def r_regress (N_tilde, M_tilde, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
     """
     Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -436,9 +436,6 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
     
     """
 
-    # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(N, N_dim, mc)
-    M_tilde,PCs,_ = run_PCA(M, M_dim, mc)
 
     # Calling best lambda
     N_tilde_cov = N_tilde.T @ N_tilde
@@ -741,10 +738,30 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
-    _, time_ct = regress_N.shape
+    time_ct = regress_M.shape [0]
+    time_ct_neu = regress_N[0]
+
+    # how many time bins are included in the movement period 
     time_bins = int(time_ct / cond)
+
+    # how many time bins are included in the preparatory and movement period 
+    time_bins_pm = int(time_ct_neu / cond)
+
+    # difference in bins 
+    diff_bin = int((time_bins_pm - time_bins) / cond)
+
+    # retrieving data projected onto the first N_dim and M_dim PCs
+    N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
+    M_tilde,PCs,_ = run_PCA(regress_M, dimensions/2, mc = False)
+
+    # removing preparatory time bins
+    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+    N_tilde_tens_reg = N_tilde_tens[:,:,diff_bin:]
+
+    # reshape for ridge
+    N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
     #W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
 
-    return regress_N, regress_M
+    return N_tilde, M_tilde, N_tilde_reg
