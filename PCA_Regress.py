@@ -752,7 +752,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
 
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
-    M_tilde,PCs,_ = run_PCA(regress_M, dimensions/2, mc = False)
+    M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
 
     # removing preparatory time bins
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
