@@ -762,6 +762,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    #W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
+    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, num_bins = time_bins, mc = False)
 
-    return N_tilde, M_tilde, N_tilde_reg
+    return W, M_tilde, M_hat
