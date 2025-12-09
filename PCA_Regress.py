@@ -672,7 +672,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
     N_prep_start = 30
     N_prep_end = 80 
     N_move_start = 150 
-    N_move_end = 216 
+    N_move_end = 215 
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
@@ -725,9 +725,9 @@ def time_cut (tensor, go_cue = True):
         cut_tensor: inter_PSTH tensor with only time bins during preparatory activity 
     """
     if go_cue:
-        N_idx = np.r_[30:80, 120, 150:216]
+        N_idx = np.r_[30:80, 120, 150:215]
     else:
-        N_idx = np.r_[30:80, 150:216]
+        N_idx = np.r_[30:80, 150:215]
     return tensor[:,:, N_idx]
 
 def fig_4 (tensor_N, tensor_M, dimensions = 6):
@@ -748,8 +748,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     time_bins_pm = int(time_ct_neu / cond)
 
     # difference in bins 
-    diff_bin = int((time_bins_pm - time_bins) / cond)
-    print(diff_bin)
+    diff_bin = int((time_bins_pm - time_bins))
+    
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
     M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
