@@ -749,7 +749,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
 
     # difference in bins 
     diff_bin = int((time_bins_pm - time_bins) / cond)
-
+    print(diff_bin)
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
     M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
