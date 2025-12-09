@@ -435,15 +435,12 @@ def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False):
         R_squared: one value of R squared for every column of M_hat
     
     """
-    print("made it to r_regress")
 
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(N, N_dim, mc)
     M_tilde,PCs,_ = run_PCA(M, M_dim, mc)
 
-    print(N_tilde.shape)
-    print(M_tilde.shape)
-    # 
+    # Calling best lambda
     N_tilde_cov = N_tilde.T @ N_tilde
     I = np.identity(N_dim)
     lam, _ = best_lam(M_tilde, N_tilde, num_bins)
@@ -499,7 +496,6 @@ def scaling (tensor):
 
     return(norm_matrix)
     
-print("PCA_Regress.py loaded")
 
 def fig_3_cut_t(tensor, dimensions):
     """
@@ -673,7 +669,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
 
     """
     # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
-    # goCue (1550ms). Motor activity is shifted 50ms later to account for signalling delay and only includes movement 
+    # goCue (1550ms) and 600ms after. Motor activity is shifted 50ms later to account for signalling delay and only includes movement 
     # data
     # cutting the N tensor with the times in preparatory period and movement period
     N_prep_start = 30
@@ -690,35 +686,35 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
     M_move_start = N_move_start + 5
     M_move_end = N_move_end + 5
     M_idx = np.r_[M_move_start:M_move_end]
-    M_cut = tensor_M[:,:, M_idx]
+    M_move = tensor_M[:,:, M_idx]
     
     # shaping it into a matrix in case not scaling 
     N_cut_matrix = shape_matrix(N_cut)
     N_move_matrix = shape_matrix(N_move)
-    M_cut_matrix = shape_matrix(M_cut)
+    M_move_matrix = shape_matrix(M_move)
    
     if scale:
         N_cut_scale = scaling(N_cut)
         N_move_scale = scaling(N_move)
-        M_cut_scale = scaling(M_cut)
+        M_move_scale = scaling(M_move)
 
     if mean_c & scale:
         N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
         N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
-        M_cut_mc = M_cut_scale - np.mean(M_cut_scale, axis = 0)
+        M_move_mc = M_move_scale - np.mean(M_move_scale, axis = 0)
     elif mean_c:
         N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
         N_move_mc = N_move_matrix - np.mean(N_move_matrix, axis = 0)
-        M_cut_mc = M_cut_matrix - np.mean(M_cut_matrix, axis = 0)
+        M_move_mc = M_move_matrix - np.mean(M_move_matrix, axis = 0)
     
     # in case want back in tensor form for mean centered and scaled 
     if tensors:
         N_adj_tensor = shape_tensor(N_cut_mc)
         N_move_tensor = shape_tensor(N_move_mc)
-        M_adj_tensor = shape_tensor(M_cut_mc)
+        M_adj_tensor = shape_tensor(M_move_mc)
         return N_adj_tensor, N_move_tensor, M_adj_tensor
 
-    return N_cut_mc, N_move_mc, M_cut_mc
+    return N_cut_mc, N_move_mc, M_move_mc
 
 def time_cut (tensor, go_cue = True):
     """
@@ -744,11 +740,11 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     cond, _, _ = tensor_N.shape
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    proj_N, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     _, time_ct = regress_N.shape
     time_bins = int(time_ct / cond)
 
     # running through ridge regression 
-    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
+    #W, M_hat, M_hat_recon, R_squared, MSE = r_regress(regress_N, regress_M, num_bins = time_bins, mc = False)
 
-    return W, proj_N, M_hat_recon
+    return regress_N, regress_M
