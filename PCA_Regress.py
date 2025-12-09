@@ -338,14 +338,14 @@ def regress (train_M, train_N, lam):
 
     return W, M_hat, R_squared
 
-def best_lam(mus_training, neu_training, time_bins):
+def best_lam(mus_rank, neu_rank, time_bins):
     """
     This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
     value and the mean squared error for that lambda.
 
     Parameters: 
-        mus_training: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
-        neu_training: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
+        mus_rank: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
+        neu_rank: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
         M: the original muscle data of shape [conditions x time bins, muscles]
 
     Returns: 
@@ -353,54 +353,67 @@ def best_lam(mus_training, neu_training, time_bins):
         mse: the mean squared error for the best lambda
     """
 
-    print("made it to best_lam")
-    conds = int(neu_training.shape[0] / time_bins)
+    # conditions in the sample 
+    conds = int(neu_rank.shape[0] / time_bins)
 
-
+    
     # Define a range of lambda values to test
     lambdas = np.logspace(-2, 3, 20)
     
     # Initialize variables to store the best lambda and its corresponding MSE
     best_lambda = None
-    min_mse = float('inf')
+    min_rmse = float('inf')
     
+    #split into testing and training, with a 20/80 split
+    test_size = int(np.round(0.2 * conds))
+    test_idx = np.random.choice(np.arange(conds), size = test_size, replace = False)
     
+    # shaping back into a tensor 
+    neu_tensor = shape_tensor(neu_rank, conds)
+    mus_tensor = shape_tensor(mus_rank, conds)
+
+    # isolating the test data 
+    neu_test_tens = neu_tensor[test_idx, :, :]
+    mus_test_tens = mus_tensor[test_idx, :, :]
+
+    # indexes for training data 
+    mask = np.ones(conds, dtype = bool)
+    mask[test_idx] = False
+    neu_training_tens = neu_tensor[mask, :, :]
+    mus_training_tens= mus_tensor[mask, :, :]
+
+    # shaping back into matrix for regression
+    neu_test = shape_matrix(neu_test_tens)
+    mus_test = shape_matrix(mus_test_tens)
+    neu_train = shape_matrix(neu_training_tens)
+    mus_train = shape_matrix(mus_training_tens)
+
+    mse_vals = []
+    rmse_vals = []
+
     # Perform cross-validation
     for lam in lambdas:
-        mse_vals = []
-        for i in range(conds):
+        # Fit a ridge regression model with the current lambda
+        W_hat= regress(mus_train, neu_train, lam)[0]
 
-            start = i * time_bins
-            end   = (i + 1) * time_bins
-
-            # test block = entire condition
-            test_mus = mus_training[start:end, :]
-            test_neu = neu_training[start:end, :]
-
-            # train = all rows except this block
-            train_mus = np.concatenate([mus_training[:start], mus_training[end:]], axis=0)
-            train_neu = np.concatenate([neu_training[:start], neu_training[end:]], axis=0)          
-
-            # Fit a ridge regression model with the current lambda
-            W_hat= regress(train_mus, train_neu, lam)[0]
-            
-            # Predict on the test sample
-            check = test_neu @ W_hat
-            
-            # Calculate MSE for this prediction
-            mse = mse_fun(test_mus, check)
-            mse_vals.append(mse)
-
-        # Update best lambda if current MSE is lower than previous minimum
-        mean_mse = np.mean(mse_vals)
+        # Predict on the test sample
+        check = neu_test @ W_hat
         
-        if mean_mse < min_mse and lam != None:
-            min_mse = mean_mse
+        mse = mse_fun(mus_test, check)
+        mse_vals.append(mse)
+
+        rmse = np.sqrt(mse)
+        rmse_vals.append(rmse)
+
+        # Update best lambda if current MSE is lower than previous minimu
+        
+        if rmse < min_rmse and lam != None:
+            min_rmse = rmse
             best_lambda = lam
     
     print(">>> best_lam returning:", best_lambda)
     # Return the best lambda and its corresponding MSE         
-    return best_lambda, min_mse
+    return best_lambda, min_rmse
 
 def r_regress (N, M, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
     """
