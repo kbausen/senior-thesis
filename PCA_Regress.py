@@ -442,7 +442,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     lam, _ = best_lam(M_tilde, N_tilde, num_bins)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
-    W = np.linalg.solve(np.linalg.inv(N_tilde_cov + lam * I), N_tilde.T @ M_tilde)
+    W = np.linalg.solve(N_tilde_cov + lam * I, N_tilde.T @ M_tilde)
 
     # calculating the M_hat by multiplying N_tilde and W from above
     M_hat = N_tilde @ W
@@ -463,7 +463,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     M_hat_recon = M_hat @ PCs.T 
 
     # calcualting mean squared error of the reconstruction 
-    MSE = mse_fun(M_tilde, M_hat_recon)
+    MSE = mse_fun(M_tilde, M_hat)
     
     
     return W, M_hat, M_hat_recon, R_squared, MSE
