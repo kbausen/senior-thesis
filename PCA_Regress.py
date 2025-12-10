@@ -800,11 +800,11 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
         plot of the neural activity in the potent and null space
     '''
     # calling figure 4 to do the regression
-    # U, S_val, V = np.linalg.svd(W)
+    U, S_val, V = np.linalg.svd(W)
 
     # potent and null space basis of W 
     W_potent = W
-    W_null = scipy.linalg.null_space(W.T)
+    W_null = U[:,3:]
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
@@ -842,6 +842,7 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
     bax2.text(1800, -1.25, "Regression Epoch", ha='center')
     bax2.set_title(f"Output Potent Dimension {basis + 1}")
     bax2.set_xlabel("Time in Trial")
+    bax2.set_ylabel("Projection (a.u.)")
 
     for i in range(cond):
         start_prep = i* time_bins
