@@ -785,7 +785,7 @@ def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
     # setting up time for x axis
     prep_time = np.arange(300, 810, 10)
     move_time = np.arange(1500, 2160, 10)
-    all_time = np.concatenate(prep_time, move_time)
+    all_time = np.concatenate((prep_time, move_time))
 
     # setting up for loop
     cond = tensor_N.shape[0]
