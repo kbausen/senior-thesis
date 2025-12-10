@@ -161,7 +161,7 @@ def amt_var (matrix, rank):
 
     print(f'{frac}% variance explained')
 
-def run_PCA (matrix, rank, mc = True):
+def run_PCA (matrix, rank, mc = False):
     """ 
     This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
     before). It will then perform a rank k approximation using the specified rank and return the projected data. 
@@ -669,9 +669,9 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
     # data
     # cutting the N tensor with the times in preparatory period and movement period
     N_prep_start = 30
-    N_prep_end = 80 
+    N_prep_end = 81 
     N_move_start = 150 
-    N_move_end = 215 
+    N_move_end = 216 
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
@@ -724,9 +724,9 @@ def time_cut (tensor, go_cue = True):
         cut_tensor: inter_PSTH tensor with only time bins during preparatory activity 
     """
     if go_cue:
-        N_idx = np.r_[30:80, 120, 150:215]
+        N_idx = np.r_[30:80, 120, 150:216]
     else:
-        N_idx = np.r_[30:80, 150:215]
+        N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
 def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False):
@@ -764,12 +764,28 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False):
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
     if plot:
-        fig_4_plot(W)
+        fig_4_plot(W, N_tilde, cond)
 
     return W, M_hat, M_hat_recon, R_squared, MSE, regress_N, N_tilde
 
-def fig_4_plot (W):
+def fig_4_plot (W, N_tilde, cond):
     '''
     
     '''
+    U, S_val, V = np.linalg.svd(W)
+
+
+    W_potent = U[:, :3] 
+    W_null = U[:, 3:]
+
+    N_potent =  N_tilde @ W_potent
+    proj_1 = N_tilde @ W_null
+    
+    prep_time = np.arange(300, 800, 10)
+    move_time = np.arange(1550, 2150, 10)
+    all_time = np.concatenate(prep_time, move_time)
+    for i in range(cond):
+        return True
+
+
 
