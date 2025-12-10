@@ -729,7 +729,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:215]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False):
     """
     
     """
@@ -763,4 +763,13 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     # running through ridge regression 
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
-    return W, M_hat, M_hat_recon, R_squared, MSE
+    if plot:
+        fig_4_plot(W)
+
+    return W, M_hat, M_hat_recon, R_squared, MSE, regress_N, N_tilde
+
+def fig_4_plot (W):
+    '''
+    
+    '''
+
