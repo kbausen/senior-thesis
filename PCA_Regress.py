@@ -802,7 +802,7 @@ def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
 
         for i in range(cond):
             start_prep = i* time_bins
-            end_prep = start + len(prep_time)
+            end_prep = start_prep + len(prep_time)
             end_move = end_prep + len(move_time)
             bax.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
             bax.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
