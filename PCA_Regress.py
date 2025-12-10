@@ -804,7 +804,7 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
 
     # potent and null space basis of W 
     W_potent = W
-    W_null = scipy.linalg.null_space(W)
+    W_null = scipy.linalg.null_space(W.T)
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
