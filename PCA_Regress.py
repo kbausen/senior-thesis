@@ -11,6 +11,9 @@ import h5py
 from scipy.io import loadmat
 import pickle
 from brokenaxes import brokenaxes
+from matplotlib.gridspec import GridSpec
+
+
 
 def shape_matrix (array):
     """ 
@@ -729,7 +732,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, potent = True):
     """
     
     """
@@ -763,15 +766,16 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6):
     # running through ridge regression 
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
+    if plot:
+        fig_4_plot(W, N_tilde, cond, basis, potent)
     return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
 
 
-def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
+def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
     '''
     
     '''
     # calling figure 4 to do the regression
-    W, M_hat, M_hat_recon, R_squared, MSE, N_tilde = fig_4(tensor_N, tensor_M, dimensions)
     U, S_val, V = np.linalg.svd(W)
 
     # potent and null space basis of W 
@@ -788,39 +792,40 @@ def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
     all_time = np.concatenate((prep_time, move_time))
 
     # setting up for loop
-    cond = tensor_N.shape[0]
     time_bins = int(N_potent.shape[0] / cond)
 
-    if potent:
-        fig = plt.figure(figsize=(5, 2))
-        bax = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+    fig = plt.figure(figsize=(8, 10))
+    gs = GridSpec(2, 1, figure=fig)
+    bax1 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
 
 
-        bax.text(500, -1.25, "Test Epoch", ha='center')
-        bax.text(1800, -1.25, "Regression Epoch", ha='center')
-        bax.set_title(f"Output Potent Dimension {basis + 1}")
+    bax1.text(500, -1.25, "Test Epoch", ha='center')
+    bax1.text(1800, -1.25, "Regression Epoch", ha='center')
+    bax1.set_title(f"Output Potent Dimension {basis + 1}")
 
-        for i in range(cond):
-            start_prep = i* time_bins
-            end_prep = start_prep + len(prep_time)
-            end_move = end_prep + len(move_time)
-            bax.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
-            bax.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
+    for i in range(cond):
+        start_prep = i* time_bins
+        end_prep = start_prep + len(prep_time)
+        end_move = end_prep + len(move_time)
+        bax1.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
+        bax1.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
-    else: 
-        fig = plt.figure(figsize=(5, 2))
-        bax = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+
+    bax2 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
 
 
-        bax.text(500, -1.25, "Test Epoch", ha='center')
-        bax.text(1800, -1.25, "Regression Epoch", ha='center')
-        bax.set_title(f"Output Null Dimension {basis + 1}")
+    bax2.text(500, -1.25, "Test Epoch", ha='center')
+    bax2.text(1800, -1.25, "Regression Epoch", ha='center')
+    bax2.set_title(f"Output Null Dimension {basis + 1}")
 
-        for i in range(cond):
-            start = i* time_bins
-            end = start + time_bins
-            bax.plot(all_time, N_null[start:end, 0], '-', color='blue', linewidth = .5)
-       
+    for i in range(cond):
+        start_prep = i* time_bins
+        end_prep = start_prep + len(prep_time)
+        end_move = end_prep + len(move_time)
+        bax2.plot(prep_time, N_null[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
+        bax2.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
+    
+    plt.show()
 
 
 
