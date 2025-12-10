@@ -779,7 +779,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
+    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, mc = False)
 
     if plot:
         fig_4_plot(W, N_tilde, cond, basis)
