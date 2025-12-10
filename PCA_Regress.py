@@ -10,6 +10,7 @@ import random
 import h5py
 from scipy.io import loadmat
 import pickle
+from brokenaxes import brokenaxes
 
 def shape_matrix (array):
     """ 
@@ -319,7 +320,6 @@ def regress (train_M, train_N, lam):
         R_squared: numpy array of shape (n_features,) containing the R-squared values for each feature
         MSE: mean squared error of the predictions
     """
-    print("regress")
     
     # compute the covariance matrix
     C = train_N.T @ train_N
@@ -729,7 +729,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False):
+def fig_4 (tensor_N, tensor_M, dimensions = 6):
     """
     
     """
@@ -763,29 +763,62 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False):
     # running through ridge regression 
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
-    if plot:
-        fig_4_plot(W, N_tilde, cond)
+    return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
 
-    return W, M_hat, M_hat_recon, R_squared, MSE, regress_N, N_tilde
 
-def fig_4_plot (W, N_tilde, cond):
+def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
     '''
     
     '''
+    # calling figure 4 to do the regression
+    W, M_hat, M_hat_recon, R_squared, MSE, N_tilde = fig_4(tensor_N, tensor_M, dimensions)
     U, S_val, V = np.linalg.svd(W)
 
-
+    # potent and null space basis of W 
     W_potent = U[:, :3] 
     W_null = U[:, 3:]
 
+    # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
-    proj_1 = N_tilde @ W_null
+    N_null = N_tilde @ W_null
     
-    prep_time = np.arange(300, 800, 10)
-    move_time = np.arange(1550, 2150, 10)
+    # setting up time for x axis
+    prep_time = np.arange(300, 810, 10)
+    move_time = np.arange(1500, 2160, 10)
     all_time = np.concatenate(prep_time, move_time)
-    for i in range(cond):
-        return True
+
+    # setting up for loop
+    cond = tensor_N.shape[0]
+    time_bins = int(N_potent.shape[0] / cond)
+
+    if potent:
+        fig = plt.figure(figsize=(5, 2))
+        bax = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+
+
+        bax.text(500, -1.25, "Test Epoch", ha='center')
+        bax.text(1800, -1.25, "Regression Epoch", ha='center')
+        bax.set_title(f"Output Potent Dimension {basis + 1}")
+
+        for i in range(cond):
+            start = i* time_bins
+            end = start + time_bins
+            bax.plot(all_time, N_potent[start:end, 0], '-', color='green')
+    
+    else: 
+        fig = plt.figure(figsize=(5, 2))
+        bax = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+
+
+        bax.text(500, -1.25, "Test Epoch", ha='center')
+        bax.text(1800, -1.25, "Regression Epoch", ha='center')
+        bax.set_title(f"Output Null Dimension {basis + 1}")
+
+        for i in range(cond):
+            start = i* time_bins
+            end = start + time_bins
+            bax.plot(all_time, N_null[start:end, 0], '-', color='green')
+       
 
 
 
