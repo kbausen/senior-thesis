@@ -796,7 +796,7 @@ def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
 
     fig = plt.figure(figsize=(8, 10))
     gs = GridSpec(2, 1, figure=fig)
-    bax1 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+    bax1 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0]) 
 
 
     bax1.text(500, -1.25, "Test Epoch", ha='center')
@@ -811,7 +811,7 @@ def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
         bax1.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
 
-    bax2 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05) 
+    bax2 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
 
 
     bax2.text(500, -1.25, "Test Epoch", ha='center')
