@@ -801,9 +801,11 @@ def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
         bax.set_title(f"Output Potent Dimension {basis + 1}")
 
         for i in range(cond):
-            start = i* time_bins
-            end = start + time_bins
-            bax.plot(all_time, N_potent[start:end, 0], '-', color='green')
+            start_prep = i* time_bins
+            end_prep = start + len(prep_time)
+            end_move = end_prep + len(move_time)
+            bax.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
+            bax.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
     else: 
         fig = plt.figure(figsize=(5, 2))
@@ -817,7 +819,7 @@ def fig_4_plot (tensor_N, tensor_M, dimensions = 6, basis = 0, potent = True):
         for i in range(cond):
             start = i* time_bins
             end = start + time_bins
-            bax.plot(all_time, N_null[start:end, 0], '-', color='green')
+            bax.plot(all_time, N_null[start:end, 0], '-', color='blue', linewidth = .5)
        
 
 
