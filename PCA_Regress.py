@@ -851,7 +851,6 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
         bax2.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
         bax2.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
-    plt.show()
-
+    
 
 
