@@ -732,9 +732,24 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, potent = True):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     """
-    
+    Performs regression needed for figure 4. 
+
+    Parameters: 
+        tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
+        tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
+        dimensions: the amount of dimensions matrix N should be reduced to 
+        plot: boolean which will call fig_4_plot if True 
+        basis: parameter for fig_4_plot 
+        
+
+    Returns: 
+        W: This is W tilde, the low rank approximation of the weights matrix
+        M_hat: The reconstruction of M_tilde through multiplying N_tilde and W
+        M_recon: M_hat projected onto the PCs of M which were used to produce M_tilde
+        R_squared: array of the R squared values for each column of M_hat, in comparison to M_tilde
+        MSE: The mean squared error of M_hat in comparison to M_tilde
     """
     cond, _, _ = tensor_N.shape
 
@@ -767,13 +782,22 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, potent =
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, num_bins = time_bins, mc = False)
 
     if plot:
-        fig_4_plot(W, N_tilde, cond, basis, potent)
+        fig_4_plot(W, N_tilde, cond, basis)
     return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
 
 
-def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
+def fig_4_plot (W, N_tilde, cond, basis = 0):
     '''
-    
+    Plot needed for figure 4. 
+
+    Parameters: 
+        W: This is W tilde, the low rank approximation of the weights matrix
+        N_tilde: this is the low rank approximation of matrix N
+        cond: the number of conditions used
+        basis: which of the three potent/null dimensions will be plotted 
+        
+    Returns: 
+        plot of the neural activity in the potent and null space
     '''
     # calling figure 4 to do the regression
     U, S_val, V = np.linalg.svd(W)
@@ -801,14 +825,15 @@ def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
 
     bax1.text(500, -1.25, "Test Epoch", ha='center')
     bax1.text(1800, -1.25, "Regression Epoch", ha='center')
-    bax1.set_title(f"Output Potent Dimension {basis + 1}")
+    bax1.set_title(f"Output Null Dimension {basis + 1}")
+    bax1.set_ylabel("Projection (a.u.)")
 
     for i in range(cond):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax1.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
-        bax1.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
+        bax1.plot(prep_time, N_null[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
+        bax1.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
 
     bax2 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
@@ -816,14 +841,15 @@ def fig_4_plot (W, N_tilde, cond, basis = 0, potent = True):
 
     bax2.text(500, -1.25, "Test Epoch", ha='center')
     bax2.text(1800, -1.25, "Regression Epoch", ha='center')
-    bax2.set_title(f"Output Null Dimension {basis + 1}")
+    bax2.set_title(f"Output Potent Dimension {basis + 1}")
+    bax2.set_xlabel("Time in Trial")
 
     for i in range(cond):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax2.plot(prep_time, N_null[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
-        bax2.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
+        bax2.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
+        bax2.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
     plt.show()
 
