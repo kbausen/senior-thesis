@@ -800,12 +800,11 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
         plot of the neural activity in the potent and null space
     '''
     # calling figure 4 to do the regression
-    U, S_val, V = np.linalg.svd(W)
+    # U, S_val, V = np.linalg.svd(W)
 
     # potent and null space basis of W 
-    W_potent = U[:, :3] 
-    W_null = U[:, 3:]
-
+    W_potent = W
+    W_null = scipy.linalg.null_space(W)
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
