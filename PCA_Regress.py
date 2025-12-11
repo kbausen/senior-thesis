@@ -413,7 +413,6 @@ def best_lam(mus_rank, neu_rank, time_bins):
         if rmse < min_rmse and lam != None:
             min_rmse = rmse
             best_lambda = lam
-    
     print(">>> best_lam returning:", best_lambda)
     # Return the best lambda and its corresponding MSE         
     return best_lambda, min_rmse
@@ -668,13 +667,22 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
 
     """
     # preparatory index is from -100ms before the targetOn (400ms) and motor activity is looked at -50ms before the 
-    # goCue (1550ms) and 600ms after. Motor activity is shifted 50ms later to account for signalling delay and only includes movement 
+    # goCue (1550ms for J, 1470ms for N) and 600ms after. Motor activity is shifted 50ms later to account for signalling delay and only includes movement 
     # data
     # cutting the N tensor with the times in preparatory period and movement period
+    
     N_prep_start = 30
     N_prep_end = 81 
-    N_move_start = 150 
-    N_move_end = 216 
+
+
+    if tensor_N.shape[2] < 229:    # dataset N
+        N_move_start = 142
+        N_move_end = 208
+    else:                          # dataset J
+        N_move_start = 150 
+        N_move_end = 216
+
+     
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
@@ -751,8 +759,10 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
         R_squared: array of the R squared values for each column of M_hat, in comparison to M_tilde
         MSE: The mean squared error of M_hat in comparison to M_tilde
     """
-    cond, _, _ = tensor_N.shape
-
+    cond, _, fin_tim = tensor_N.shape
+    
+    if fin_tim < 229:
+        J = False
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
@@ -782,11 +792,11 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, mc = False)
 
     if plot:
-        fig_4_plot(W, N_tilde, cond, basis)
+        fig_4_plot(W, N_tilde, cond, dimensions, basis)
     return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
 
 
-def fig_4_plot (W, N_tilde, cond, basis = 0):
+def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     '''
     Plot needed for figure 4. 
 
@@ -795,32 +805,42 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
         N_tilde: this is the low rank approximation of matrix N
         cond: the number of conditions used
         basis: which of the three potent/null dimensions will be plotted 
+        J: tells if this is from monkey J or N
         
     Returns: 
         plot of the neural activity in the potent and null space
     '''
     # calling figure 4 to do the regression
     U, S_val, V = np.linalg.svd(W)
+    rank = int(dimensions/2)
 
     # potent and null space basis of W 
     W_potent = W
-    W_null = U[:,3:]
+    W_null = U[:,rank:]
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
     
     # setting up time for x axis
     prep_time = np.arange(300, 810, 10)
-    move_time = np.arange(1500, 2160, 10)
-    all_time = np.concatenate((prep_time, move_time))
+    if J:
+        move_time = np.arange(1500, 2170, 10)
+    else: 
+        move_time = np.arange(1420, 2090, 10)
+    
 
     # setting up for loop
     time_bins = int(N_potent.shape[0] / cond)
 
     fig = plt.figure(figsize=(8, 10))
     gs = GridSpec(2, 1, figure=fig)
-    bax1 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0]) 
 
+    if J: 
+        bax1 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0]) 
+        bax2 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
+    else: 
+        bax1 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0])
+        bax2 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1])  
 
     bax1.text(500, -1.25, "Test Epoch", ha='center')
     bax1.text(1800, -1.25, "Regression Epoch", ha='center')
@@ -834,9 +854,6 @@ def fig_4_plot (W, N_tilde, cond, basis = 0):
         bax1.plot(prep_time, N_null[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
         bax1.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
-
-    bax2 = brokenaxes(xlims=((300, 800), (1500, 2150)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
-
 
     bax2.text(500, -1.25, "Test Epoch", ha='center')
     bax2.text(1800, -1.25, "Regression Epoch", ha='center')
