@@ -759,10 +759,14 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
         R_squared: array of the R squared values for each column of M_hat, in comparison to M_tilde
         MSE: The mean squared error of M_hat in comparison to M_tilde
     """
+    # components needed for later
     cond, _, fin_tim = tensor_N.shape
     
     if fin_tim < 229:
         J = False
+    else: 
+        J = True
+
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
@@ -792,7 +796,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, mc = False)
 
     if plot:
-        fig_4_plot(W, N_tilde, cond, dimensions, basis)
+        fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
 
 
