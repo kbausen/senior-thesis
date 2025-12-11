@@ -828,9 +828,9 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     # setting up time for x axis
     prep_time = np.arange(300, 810, 10)
     if J:
-        move_time = np.arange(1500, 2170, 10)
+        move_time = np.arange(1500, 2160, 10)
     else: 
-        move_time = np.arange(1420, 2090, 10)
+        move_time = np.arange(1420, 2080, 10)
     
 
     # setting up for loop
