@@ -494,7 +494,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     I = np.identity(N_dim)
 
     if cv:
-        lam, _, _ = best_lam(neu_lam_mat, mus_lam_mat, num_bins)
+        lam, _, _, _, _ = best_lam(neu_lam_mat, mus_lam_mat, num_bins)
     else: 
         lam, _ = simple_lam(neu_lam_mat, mus_lam_mat)
     
