@@ -333,7 +333,7 @@ def regress (train_N, train_M, lam):
     W_hat = np.linalg.solve(C + lam * I, train_N.T @ train_M)
     
     # compute the predicted values
-    M_hat = train_N @ W
+    M_hat = train_N @ W_hat
     
     # compute R-squared values
     R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
