@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal, halfnorm
 import random
 import h5py
+from sklearn.linear_model import RidgeCV
 from scipy.io import loadmat
 import pickle
 from brokenaxes import brokenaxes
@@ -308,13 +309,13 @@ def mse_fun(true_values, predicted_values):
     """
     return np.mean((true_values - predicted_values) ** 2)
 
-def regress (train_M, train_N, lam):
+def regress (train_N, train_M, lam):
     """
     This function performs ridge regression on the data matrix M with regularization parameter lam.
 
     Parameters:
-        train_M: numpy array of shape [time-1, rank k] containing rank approximation of the muscle data
         train_N: numpy array of shape [time-1, rank 2k] containing rank approximation of the neural data
+        train_M: numpy array of shape [time-1, rank k] containing rank approximation of the muscle data
         lam: regularization parameter
 
     Returns:
@@ -327,11 +328,9 @@ def regress (train_M, train_N, lam):
     # compute the covariance matrix
     C = train_N.T @ train_N
     I = np.eye(C.shape[0])
-    
 
     # compute the weights matrix
-    W = np.linalg.solve(C + lam * I, train_N.T @ train_M)
-    
+    W_hat = np.linalg.solve(C + lam * I, train_N.T @ train_M)
     
     # compute the predicted values
     M_hat = train_N @ W
@@ -339,136 +338,191 @@ def regress (train_M, train_N, lam):
     # compute R-squared values
     R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
 
-    return W, M_hat, R_squared
+    # MSE
+    MSE_lam = mse_fun(train_M, M_hat)
 
-def best_lam(mus_rank, neu_rank, time_bins):
+    # RMSE 
+    RMSE_lam = np.sqrt(MSE_lam)
+
+    return W_hat, M_hat, R_squared, RMSE_lam, MSE_lam
+
+def best_lam(neu_lam, mus_lam, time_bins):
     """
     This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
     value and the mean squared error for that lambda.
 
     Parameters: 
-        mus_rank: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
-        neu_rank: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs
-        M: the original muscle data of shape [conditions x time bins, muscles]
+        neu_lam: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs for neural data
+        mus_lam: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs for muscle data
+        time_bins: the number of time bins used for each condition
 
     Returns: 
         best_lambda: the best lambda value found during cross-validation
-        mse: the mean squared error for the best lambda
+        min_mse: the root mean squared error of the subset of data using the best lambda 
+        min_rmse: the mean squared error of the subset of data using the best lambda
+        mse_vals: all mean squared error values for each tested value of lambda 
+        rmse_vals: all root mean squared error values for each tested value of lambda
+
     """
 
-    # conditions in the sample 
-    conds = int(neu_rank.shape[0] / time_bins)
-
-    
     # Define a range of lambda values to test
     lambdas = np.logspace(-2, 3, 20)
     
     # Initialize variables to store the best lambda and its corresponding MSE
     best_lambda = None
     min_rmse = float('inf')
-    
-    #split into testing and training, with a 20/80 split
-    test_size = int(np.round(0.2 * conds))
-    test_idx = np.random.choice(np.arange(conds), size = test_size, replace = False)
-    
-    # shaping back into a tensor 
-    neu_tensor = shape_tensor(neu_rank, conds)
-    mus_tensor = shape_tensor(mus_rank, conds)
-
-    # isolating the test data 
-    neu_test_tens = neu_tensor[test_idx, :, :]
-    mus_test_tens = mus_tensor[test_idx, :, :]
-
-    # indexes for training data 
-    mask = np.ones(conds, dtype = bool)
-    mask[test_idx] = False
-    neu_training_tens = neu_tensor[mask, :, :]
-    mus_training_tens= mus_tensor[mask, :, :]
-
-    # shaping back into matrix for regression
-    neu_test = shape_matrix(neu_test_tens)
-    mus_test = shape_matrix(mus_test_tens)
-    neu_train = shape_matrix(neu_training_tens)
-    mus_train = shape_matrix(mus_training_tens)
-
+    min_mse = float('inf')
     mse_vals = []
     rmse_vals = []
 
     # Perform cross-validation
     for lam in lambdas:
         # Fit a ridge regression model with the current lambda
-        W_hat= regress(mus_train, neu_train, lam)[0]
+        W_hat, _, _, RMSE_lam, MSE_lam = regress(mus_lam, neu_lam, lam)
 
         # Predict on the test sample
-        check = neu_test @ W_hat
-        
-        mse = mse_fun(mus_test, check)
-        mse_vals.append(mse)
+        mse_vals.append(MSE_lam)
+        rmse_vals.append(RMSE_lam)
 
-        rmse = np.sqrt(mse)
-        rmse_vals.append(rmse)
-
-        # Update best lambda if current MSE is lower than previous minimu
-        
-        if rmse < min_rmse and lam != None:
-            min_rmse = rmse
+        # Update best lambda if current RMSE is lower than previous minimum
+        if RMSE_lam < min_rmse and lam != None:
+            min_rmse = RMSE_lam
+            min_mse = MSE_lam
             best_lambda = lam
+
     print(">>> best_lam returning:", best_lambda)
     # Return the best lambda and its corresponding MSE         
-    return best_lambda, min_rmse
+    return best_lambda, min_mse, min_rmse, mse_vals, rmse_vals
 
-def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False): 
+def simple_lam(N_train, M_train):
     """
-    Takes in M and N matrices and runs least squares regression on these matrices projected onto their first N_dim and M_dim PCs
+    This function is using the scikit-learn package to perform cross validation on the samples. The metric is MSE. This is using leave one out cross validation. 
+    My caution with this is that I do not know what "one" was left out. 
+
+    Parameters: 
+        N_train: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs for neural data
+        M_train: a 2D numpy array of shape [ct, rank] which is the projection onto the first rank PCs for muscle data
+
+    Returns: 
+        best_lambda: the best lambda value found during cross-validation
+        cv_results: the stored mean squared error for all tested lambdas 
+    """
+
+     # Define a range of lambda values to test
+    lambdas = np.logspace(-2, 3, 20)
+
+    # Initialize the RidgeCV model with the lambda values, this will minimize MSE, and is data centered
+    model_cv = RidgeCV(alphas=lambdas, scoring='neg_mean_squared_error', store_cv_values=True, fit_intercept = False)
+
+    # Fit the model (the optimal alpha is found automatically during this step)
+    model_cv.fit(N_train, M_train)
+    cv_results = model_cv.cv_results_
+
+    # The optimal alpha value can be accessed via the alpha_ attribute
+    best_lambda = model_cv.alpha_
+    print(">>> best_lam returning:", best_lambda)
+    return best_lambda, cv_results
+
+
+def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False, cv = True): 
+    """
+    Takes in M and N matrices and runs ridge regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
 
     Parameters: 
-        M: This is a 2D matrix [conditions x time bins, muscle/neuron readouts] which is dependent on N
-        N: This is a 2D matrix [conditions x time bins, neurons] 
+        M_tilde: This is a 2D matrix [conditions x time bins, muscle/neuron readouts] which is dependent on N
+        N_tilde: This is a 2D matrix [conditions x time bins, neurons] 
         condition: reach number 
         M_dim: amount of PCs to project M onto 
         N_dim: amount of PCs to project N onto (should be double M)
         num_bins: how many time bins are in each trial 
+        mc: if the data needs to be mean centered
+        cv: boolean which decides if the code should use the best_lam function (True) or the simple_lam function for cross-validation
 
     Returns:
-        W: weight matrix found using least squares regression
-        M_hat: the product of N_tilde (N projected onto N_dim PCs) and W. Shape is [num_bins, M_dim] 
-        M_hat_recon: reconstruction of M using M_hat and the PCs  
-        R_squared: one value of R squared for every column of M_hat
+        W: weight matrix found using ridge regression
+        mus_test_mat: the 20% of muscle data selected to test the performance of the trained model
+        M_test_hat: the product of a subset of neural data used for testing (N projected onto N_dim PCs) and W. Shape is [num_bins, M_dim]
+        M_hat_recon: reconstruction of mus_test_mat using M_test_hat and the PCs  
+        R_squared: one value of R squared for every column of M_test_hat
+        MSE: mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W
+        RMSE: the root mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W
     
     """
+    # conditions in the sample 
+    conds = int(N_tilde.shape[0] / num_bins)
+    
+    # listing and shuffling all possible indexes 
+    all_idx = np.arange(conds)
+    np.random.shuffle(all_idx)
+
+    # calculate the sizes of each set 
+    size_10_percent = int(np.round(conds * 0.1))    # 10% for lambda 
+    size_20_percent = int(np.round(conds * 0.2))    # 20% for testing
+
+    # splitting the shuffled index array 
+    split_points = [size_10_percent, size_10_percent + size_20_percent]
+    split_sets = np.split(all_idx, split_points)
+
+    # indexes of the split data 
+    lam_idx = split_sets[0]           # 10% of data
+    test_idx = split_sets[1]          # 20% of data 
+    train_idx = split_sets[2]         # 70% of data
+
+    # shaping back into a tensor 
+    neu_tensor = shape_tensor(N_tilde, conds)
+    mus_tensor = shape_tensor(M_tilde, conds)
+
+    # isolating the data as they've been split above
+    neu_lam_tens = neu_tensor[lam_idx, :, :]          # 10% for lambda
+    mus_lam_tens = mus_tensor[lam_idx, :, :]          # 10% for lambda
+    neu_test_tens = neu_tensor[test_idx, :, :]        # 20% for testing
+    mus_test_tens = mus_tensor[test_idx, :, :]        # 20% for testing
+    neu_train_tens = neu_tensor[train_idx, :, :]      # 80% for training
+    mus_train_tens = mus_tensor[train_idx, :, :]      # 80% for training
+
+    # reshaping into matrix
+    neu_lam_mat = shape_matrix(neu_lam_tens)         
+    mus_lam_mat = shape_matrix(mus_lam_tens)          
+    neu_test_mat = shape_matrix(neu_test_tens)        
+    mus_test_mat = shape_matrix(mus_test_tens)        
+    neu_train_mat = shape_matrix(neu_train_tens)      
+    mus_train_mat = shape_matrix(mus_train_tens)      
 
     # Calling best lambda
-    N_tilde_cov = N_tilde.T @ N_tilde
+    neu_train_cov = neu_train_mat.T @ neu_train_mat
     I = np.identity(N_dim)
-    lam, _ = best_lam(M_tilde, N_tilde, num_bins)
-    
-    # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression
-    W = np.linalg.solve(N_tilde_cov + lam * I, N_tilde.T @ M_tilde)
 
-    # calculating the M_hat by multiplying N_tilde and W from above
-    M_hat = N_tilde @ W
+    if cv:
+        lam, _, _ = best_lam(neu_lam_mat, mus_lam_mat, num_bins)
+    else: 
+        lam, _ = simple_lam(neu_lam_mat, mus_lam_mat)
     
+    # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
+    W = np.linalg.solve(neu_train_cov + lam * I, neu_train_mat.T @ mus_train_mat)
+
+    # calculating the M_hat by multiplying neu_test_mat and W from above
+    M_test_hat = neu_test_mat @ W
     R_squared = []
 
     # calculating R squared for each column of M_tilde
     for i in range (W.shape[1]):
-        SST = M_tilde[:,i] - np.mean(M_tilde[:,i])
+        SST = mus_test_mat[:,i] - np.mean(mus_test_mat[:,i])
         SST = SST @ SST.T
-        SSR = M_hat[:,i] - np.mean(M_tilde[:,i])
+        SSR = M_test_hat[:,i] - np.mean(mus_test_mat[:,i])
         SSR = SSR @ SSR.T
         R_sq = 1 - (SSR / SST)
         R_squared.append(R_sq)
     R_squared = np.array(R_squared)
 
     # projecting M_hat onto the PCs of M for a reconstruction 
-    M_hat_recon = M_hat @ PCs.T 
+    M_hat_recon = M_test_hat @ PCs.T 
 
-    # calcualting mean squared error of the reconstruction 
-    MSE = mse_fun(M_tilde, M_hat)
+    # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W 
+    MSE_test = mse_fun(mus_test_mat, M_test_hat)
+    RMSE_test = np.sqrt(MSE_test)
     
-    
-    return W, M_hat, M_hat_recon, R_squared, MSE
+    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
     
 def scaling (tensor):
     """
@@ -740,7 +794,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True):
     """
     Performs regression needed for figure 4. 
 
@@ -765,10 +819,10 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     if fin_tim < 229:
         J = False
     else: 
-        J = True
+        J = True       # identifies what data set it is working with and will ensure the correct timecuts occur
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    regress_N, _, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -793,11 +847,12 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0):
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    W, M_hat, M_hat_recon, R_squared, MSE = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, mc = False)
+    W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
+                                                                                         mc = False, cv = cv)
 
     if plot:
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
-    return W, M_hat, M_hat_recon, R_squared, MSE, N_tilde
+    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
 
 def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
@@ -814,7 +869,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     Returns: 
         plot of the neural activity in the potent and null space
     '''
-    # calling figure 4 to do the regression
+    # running SVD on W to be able to get the null space of the matrix 
     U, S_val, V = np.linalg.svd(W)
     rank = int(dimensions/2)
 
@@ -832,13 +887,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     else: 
         move_time = np.arange(1420, 2080, 10)
     
-
     # setting up for loop
     time_bins = int(N_potent.shape[0] / cond)
 
     fig = plt.figure(figsize=(8, 10))
     gs = GridSpec(2, 1, figure=fig)
 
+    # different limits on the axes depending on which dataset was given
     if J: 
         bax1 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0]) 
         bax2 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
@@ -846,11 +901,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax1 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0])
         bax2 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1])  
 
+    # labels for output null graph
     bax1.text(500, -1.25, "Test Epoch", ha='center')
     bax1.text(1800, -1.25, "Regression Epoch", ha='center')
     bax1.set_title(f"Output Null Dimension {basis + 1}")
     bax1.set_ylabel("Projection (a.u.)")
 
+    # plotting the data for output null space
     for i in range(cond):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
@@ -858,13 +915,14 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax1.plot(prep_time, N_null[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
         bax1.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
-
+    # labels for output potent graph
     bax2.text(500, -1.25, "Test Epoch", ha='center')
     bax2.text(1800, -1.25, "Regression Epoch", ha='center')
     bax2.set_title(f"Output Potent Dimension {basis + 1}")
     bax2.set_xlabel("Time in Trial")
     bax2.set_ylabel("Projection (a.u.)")
 
+    # plotting the data for output potent space 
     for i in range(cond):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
@@ -872,6 +930,3 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax2.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
         bax2.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
-    
-
-
