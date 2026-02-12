@@ -412,7 +412,7 @@ def simple_lam(N_train, M_train):
     lambdas = np.logspace(-2, 3, 20)
 
     # Initialize the RidgeCV model with the lambda values, this will minimize MSE, and is data centered
-    model_cv = RidgeCV(alphas=lambdas, scoring='neg_mean_squared_error', store_cv_values=True, fit_intercept = False)
+    model_cv = RidgeCV(alphas=lambdas, scoring='neg_mean_squared_error', store_cv_results=True, fit_intercept = False)
 
     # Fit the model (the optimal alpha is found automatically during this step)
     model_cv.fit(N_train, M_train)
