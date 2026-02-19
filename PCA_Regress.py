@@ -740,10 +740,11 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
-    # this is needed for the regression to find W tilde
+    # isolates movement and preparatory data needed for the regression to find W tilde and tuning 
     N_move = tensor_N[:,:, N_move_start:N_move_end]
+    N_prep = tensor_N[:,:, N_prep_start:N_prep_end]
 
-    # cutting the M tensor with the times in preparatory period and movement period
+    # cutting the M tensor with the times in  movement period
     M_move_start = N_move_start + 5
     M_move_end = N_move_end + 5
     M_idx = np.r_[M_move_start:M_move_end]
@@ -855,7 +856,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
 
-def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
+def fig_4_plot (W_potent, N_tilde, cond, dimensions, basis = 0, J = True):
     '''
     Plot needed for figure 4. 
 
@@ -869,13 +870,9 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     Returns: 
         plot of the neural activity in the potent and null space
     '''
-    # running SVD on W to be able to get the null space of the matrix 
-    U, S_val, V = np.linalg.svd(W)
-    rank = int(dimensions/2)
+    # Finding W_null
+    W_null = scipy.linalg.null_space(W_potent)
 
-    # potent and null space basis of W 
-    W_potent = W
-    W_null = U[:,rank:]
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
