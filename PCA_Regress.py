@@ -856,7 +856,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
 
-def fig_4_plot (W_potent, N_tilde, cond, dimensions, basis = 0, J = True):
+def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     '''
     Plot needed for figure 4. 
 
@@ -870,8 +870,17 @@ def fig_4_plot (W_potent, N_tilde, cond, dimensions, basis = 0, J = True):
     Returns: 
         plot of the neural activity in the potent and null space
     '''
-    # Finding W_null
-    W_null = scipy.linalg.null_space(W_potent)
+
+    # running SVD on W to be able to get the null space of the matrix 
+    U, S_val, V = np.linalg.svd(W)
+    rank = int(dimensions/2)
+
+    # potent and null space basis of W 
+    W_potent = W
+    W_null = U[:,rank:]
+
+    # finding W_null
+    #W_null = scipy.linalg.null_space(W_potent)
 
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
