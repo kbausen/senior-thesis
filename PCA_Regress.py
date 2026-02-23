@@ -822,7 +822,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         J = True       # identifies what data set it is working with and will ensure the correct timecuts occur
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    _, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    prep_move_N, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
     #time_ct_neu = regress_N.shape [0]
 
@@ -837,6 +837,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
+    N_tilde_plot,_,_ = run_PCA(prep_move_N, dimensions, mc = False)
     M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
 
     # removing preparatory time bins
@@ -851,7 +852,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
                                                                                          mc = False, cv = cv)
 
     if plot:
-        fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
+        fig_4_plot(W, N_tilde_plot, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
 
