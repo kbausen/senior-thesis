@@ -882,7 +882,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     # low rank neural data projected onto null and potent space of weights and scaling them
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
-    max = np.maximum(N_potent, N_null)
+    max = np.max(np.abs(np.concatenate([N_potent, N_null])))
     N_potent /= max
     N_null /=  max
     
