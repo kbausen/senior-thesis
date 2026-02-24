@@ -878,12 +878,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     W_potent = W
     W_null = U[:,rank:]
 
-    # finding W_null
-    #W_null = scipy.linalg.null_space(W_potent)
 
     # low rank neural data projected onto null and potent space of weights 
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
+    max = np.maximum(N_potent, N_null)
+    N_pot_scaled = N_potent / max
+    N_null_scaled = N_null / max
     
     # setting up time for x axis
     prep_time = np.arange(300, 810, 10)
