@@ -541,10 +541,9 @@ def scaling (tensor):
     # columns max and min 
     col_max = np.amax(new_matrix, axis = 0)
     col_min = np.amin(new_matrix, axis = 0)
-  
 
     # normalizing by their ranges
-    norm_matrix = (new_matrix) / (col_max - col_min)
+    norm_matrix = (new_matrix - col_min) / (col_max - col_min)
 
     return(norm_matrix)
     
@@ -822,37 +821,37 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         J = True       # identifies what data set it is working with and will ensure the correct timecuts occur
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    prep_move_N, regress_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
     time_ct = regress_M.shape [0]
-    #time_ct_neu = regress_N.shape [0]
+    time_ct_neu = regress_N.shape [0]
 
     # how many time bins are included in the movement period 
     time_bins = int(time_ct / cond)
 
     # how many time bins are included in the preparatory and movement period 
-    #time_bins_pm = int(time_ct_neu / cond)
+    time_bins_pm = int(time_ct_neu / cond)
 
     # difference in bins 
-    #diff_bin = int((time_bins_pm - time_bins))
+    diff_bin = int((time_bins_pm - time_bins))
     
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
-    N_tilde_plot,_,_ = run_PCA(prep_move_N, dimensions, mc = False)
+    N_tilde_move,_,_ = run_PCA(move_N, dimensions, mc = False)
     M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
 
     # removing preparatory time bins
-    #N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-    #N_tilde_tens_reg = N_tilde_tens[:,:,diff_bin:]
+    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+    N_tilde_tens_reg = N_tilde_tens[:,:,diff_bin:]
 
     # reshape for ridge
-    #N_tilde_reg = shape_matrix(N_tilde_tens_reg)
+    N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test = r_regress(N_tilde, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
+    W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
                                                                                          mc = False, cv = cv)
 
     if plot:
-        fig_4_plot(W, N_tilde_plot, cond, dimensions, basis, J)
+        fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
 
