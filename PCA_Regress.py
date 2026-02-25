@@ -923,6 +923,27 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     bax1.text(1800, -1.1, "Regression Epoch", ha='center')
     bax1.set_title(f"Output Null Dimension {basis + 1}")
     bax1.set_ylabel("Projection (a.u.)")
+  
+
+    y_line = -1.2  # slightly above lower y-limit
+
+    if J:
+        # 300–800 (blue)
+        bax1.plot([300, 800], [y_line, y_line],
+                color='blue', linewidth=4, solid_capstyle='butt')
+
+        # 1500–2170 (green)
+        bax1.plot([1500, 2170], [y_line, y_line],
+                color='green', linewidth=4, solid_capstyle='butt')
+
+    else:
+        # 300–800 (blue)
+        bax1.plot([300, 800], [y_line, y_line],
+                color='blue', linewidth=4, solid_capstyle='butt')
+
+        # 1420–2080 (green)
+        bax1.plot([1420, 2080], [y_line, y_line],
+                color='green', linewidth=4, solid_capstyle='butt')
 
     # plotting the data for output null space
     for i in range(cond):
