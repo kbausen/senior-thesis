@@ -1048,7 +1048,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
     null_frac = []
     pot_frac = []
     
-    for i in rep: 
+    for i in range(rep): 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
         U, S_val, V = np.linalg.svd(W1)
         rank = int(dims1/2)
