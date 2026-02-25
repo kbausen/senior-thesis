@@ -691,7 +691,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
 
 
-def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False):
+def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False, fig4 = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is 
     necessary before PCA or anything can be run on the data 
@@ -735,6 +735,15 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False)
         N_move_start = 150 
         N_move_end = 216
 
+    if fig4: 
+        N_prep_start = 0
+        N_prep_end = 81 
+        if tensor_N.shape[2] < 229:    # dataset N
+            N_move_start = 117
+            N_move_end = 208
+        else:                          # dataset J
+            N_move_start = 125 
+            N_move_end = 216
      
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
@@ -851,6 +860,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
                                                                                          mc = False, cv = cv)
 
     if plot:
+        regress_N, _,_ = time_shift(tensor_N, tensor_M, tensors = False, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
