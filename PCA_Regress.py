@@ -1097,9 +1097,11 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, tensor_N2 = None, tensor_M2 = None
        
 
         # Example data
-            
+        
         null_prop = np.array(null_frac_means)
         potent_prop = 1 - null_prop        # ensures they sum to 1
+        print(null_prop)
+        print(potent_prop)
 
         x = np.arange(len(dims1))           # group positions
         width = 0.35                       # bar width
