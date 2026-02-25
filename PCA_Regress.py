@@ -424,7 +424,7 @@ def simple_lam(N_train, M_train):
     return best_lambda, cv_results
 
 
-def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False, cv = True): 
+def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False, cv = False): 
     """
     Takes in M and N matrices and runs ridge regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -793,7 +793,7 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = False):
     """
     Performs regression needed for figure 4. 
 
@@ -982,21 +982,25 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     var_tuning = (null_prep_var / pot_prep_var) / gamma    # this is with using the sum of variance
     frob_tuning = (null_prep_frob / pot_prep_frob) / gamma2    # this is with using the frobenius norm
 
+    # fraction of prep in null space and potent space
+    null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
+    pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var) 
+
     # print("Gamma: ",null_move_var / pot_move_var)
     # print("Tuning with variance: ", tuning)
     # print("Tuning with frobenius norm: ", tuning2)
     # print("Move null/pot:", null_move_var / pot_move_var)
     # print("Prep null/pot:", null_prep_var / pot_prep_var)
-    return var_tuning, frob_tuning
+    return var_tuning, frob_tuning, null_fraction, pot_fraction
 
-def tuning_fig (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0):
+def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
     """
     Takes in two tensors and processes them to get the tuning ratio. 
 
     Parameters: 
         tensor_N: tensor which has either neural data or PMd data 
         tensor_M: tensor which has either muscle data or M1 data
-        cv: choosing method of cross-validation, True = 
+        cv: choosing method of cross-validation, True = method called best lambda 
         rep: 
     
     Returns: 
@@ -1041,6 +1045,8 @@ def tuning_fig (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0):
 
     var_tuning = []
     frob_tuning = []
+    null_frac = []
+    pot_frac = []
     
     for i in rep: 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
@@ -1051,7 +1057,67 @@ def tuning_fig (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0):
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
 
-        var_tuning_i, frob_tuning_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
+        var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
-    return var_tuning, frob_tuning
+        null_frac.append(null_frac_i)
+        pot_frac.append(pot_frac_i)
+    return var_tuning, frob_tuning, null_frac, pot_frac
+
+def tuning_mult (tensor_N1, tensor_M1, dims1, tensor_N2 = None, tensor_M2 = None, dims2 = None, cv = False, rep = 0, plot = False):
+    """
+    """
+
+    var_tuning_means = []
+    frob_tuning_means = []
+    null_frac_means = []
+    pot_frac_means = []
+    for dims in dims1: 
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, dims, cv, rep)
+        var_tuning_means.append(np.mean(var_tuning))
+        frob_tuning_means.append(np.mean(frob_tuning))
+        null_frac_means.append(np.mean(null_frac))
+        pot_frac_means.append(np.mean(pot_frac))
+
+    if tensor_N2 != None:
+        var_tuning_means2 = []
+        frob_tuning_means2 = []
+        null_frac_means2 = []
+        pot_frac_means2 = []
+        for dims in dims2: 
+            var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N2, tensor_M2, dims, cv, rep)
+            var_tuning_means2.append(np.mean(var_tuning))
+            frob_tuning_means2.append(np.mean(frob_tuning))
+            null_frac_means2.append(np.mean(null_frac))
+            pot_frac_means2.append(np.mean(pot_frac))
+    
+    if plot:
+        fig = plt.figure(figsize=(8, 10))
+        gs = GridSpec(2, 1, figure=fig)
+       
+
+        # Example data
+            
+        null_prop = np.array(null_frac_means)
+        potent_prop = 1 - null_prop        # ensures they sum to 1
+
+        x = np.arange(len(dims1))           # group positions
+        width = 0.35                       # bar width
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+
+        # Null bars (all same color)
+        ax.bar(x - width/2, null_prop, width, label="Null", color="blue")
+
+        # Potent bars (all same color)
+        ax.bar(x + width/2, potent_prop, width, label="Potent", color="green")
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(dims1)
+        ax.set_xlabel("Number of Dimensions")
+        ax.set_ylabel("Proportion of Activity")
+        ax.set_ylim(0, 1)
+        ax.legend()
+
+        plt.tight_layout()
+        plt.show()
