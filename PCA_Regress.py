@@ -927,22 +927,25 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
 
     y_line = -1.2  # slightly above lower y-limit
 
+    
+    # 300–800 (blue) for preparatory activity
+    bax1.plot([300, 800], [y_line, y_line],
+            color='blue', linewidth=4, solid_capstyle='butt')
+    bax2.plot([300, 800], [y_line, y_line],
+            color='blue', linewidth=4, solid_capstyle='butt')
     if J:
-        # 300–800 (blue)
-        bax1.plot([300, 800], [y_line, y_line],
-                color='blue', linewidth=4, solid_capstyle='butt')
-
-        # 1500–2170 (green)
+        # 1500–2170 (green) for regression epoch
         bax1.plot([1500, 2170], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
+        bax2.plot([1500, 2170], [y_line, y_line],
+                color='green', linewidth=4, solid_capstyle='butt')
+        
 
     else:
-        # 300–800 (blue)
-        bax1.plot([300, 800], [y_line, y_line],
-                color='blue', linewidth=4, solid_capstyle='butt')
-
-        # 1420–2080 (green)
+            # 1420–2080 (green) for regression epoch
         bax1.plot([1420, 2080], [y_line, y_line],
+                color='green', linewidth=4, solid_capstyle='butt')
+        bax2.plot([1420, 2080], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
 
     # plotting the data for output null space
