@@ -878,14 +878,15 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     W_potent = U[:,:rank]
     W_null = U[:,rank:]
 
-    print(W_potent.shape)
+    
     # low rank neural data projected onto null and potent space of weights and scaling them
     N_potent =  N_tilde @ W_potent[:,basis]
     N_null = N_tilde @ W_null[:,basis]
     max = np.max(np.abs(np.concatenate([N_potent, N_null])))
     N_potent /= max
     N_null /=  max
-    
+    print(N_null.shape)
+
     # setting up time for x axis
     prep_time = np.arange(300, 810, 10)
     if J:
