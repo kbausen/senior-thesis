@@ -875,13 +875,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     rank = int(dimensions/2)
 
     # potent and null space basis of W 
-    W_potent = W
+    W_potent = U[:,:rank]
     W_null = U[:,rank:]
 
 
     # low rank neural data projected onto null and potent space of weights and scaling them
-    N_potent =  N_tilde @ W_potent
-    N_null = N_tilde @ W_null
+    N_potent =  N_tilde @ W_potent[basis,:]
+    N_null = N_tilde @ W_null[basis,:]
     max = np.max(np.abs(np.concatenate([N_potent, N_null])))
     N_potent /= max
     N_null /=  max
@@ -1123,13 +1123,13 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
         ax.set_xticks(x)
         ax.set_xticklabels(dims1)
         ax.set_xlabel("Number of Dimensions")
-        ax.set_ylabel("Proportion of Activity")
+        ax.set_ylabel("Fraction of Preparatory Tuning")
         ax.set_ylim(0, 1)
         ax.legend()
         if J:
             J_text = "J"
         else:
-            J_text = "M"
+            J_text = "N"
         if PMd: 
             an_text = "PMd to M1"
         else: 
