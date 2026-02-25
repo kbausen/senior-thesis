@@ -378,7 +378,7 @@ def best_lam(neu_lam, mus_lam, time_bins):
     # Perform cross-validation
     for lam in lambdas:
         # Fit a ridge regression model with the current lambda
-        W_hat, _, _, RMSE_lam, MSE_lam = regress(mus_lam, neu_lam, lam)
+        W_hat, _, _, RMSE_lam, MSE_lam = regress(neu_lam, mus_lam, lam)
 
         # Predict on the test sample
         mse_vals.append(MSE_lam)
@@ -901,15 +901,15 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
 
     # different limits on the axes depending on which dataset was given
     if J: 
-        bax1 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0]) 
-        bax2 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1]) 
+        bax1 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0]) 
+        bax2 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1]) 
     else: 
-        bax1 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05, subplot_spec=gs[0])
-        bax2 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.5, 1.5),), hspace=.05,  subplot_spec=gs[1])  
+        bax1 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0])
+        bax2 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1])  
 
     # labels for output null graph
-    bax1.text(500, -1.25, "Test Epoch", ha='center')
-    bax1.text(1800, -1.25, "Regression Epoch", ha='center')
+    bax1.text(500, -1.1, "Test Epoch", ha='center')
+    bax1.text(1800, -1.1, "Regression Epoch", ha='center')
     bax1.set_title(f"Output Null Dimension {basis + 1}")
     bax1.set_ylabel("Projection (a.u.)")
 
@@ -922,8 +922,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax1.plot(move_time, N_null[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
     # labels for output potent graph
-    bax2.text(500, -1.25, "Test Epoch", ha='center')
-    bax2.text(1800, -1.25, "Regression Epoch", ha='center')
+    bax2.text(500, -1.1, "Test Epoch", ha='center')
+    bax2.text(1800, -1.1, "Regression Epoch", ha='center')
     bax2.set_title(f"Output Potent Dimension {basis + 1}")
     bax2.set_xlabel("Time in Trial")
     bax2.set_ylabel("Projection (a.u.)")
@@ -936,3 +936,122 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax2.plot(prep_time, N_potent[start_prep:end_prep, 0], '-', color='blue',  linewidth = .5)
         bax2.plot(move_time, N_potent[end_prep:end_move, 0], '-', color='green',  linewidth = .5)
     
+def tuning_rat (W_potent, W_null, neu_move, neu_prep):
+    """
+    Takes in the weights matrix from ridge regression and it's null space, as well as neural activity from the movement and preparatory period and computes the 
+    tuning ratio in two ways. The first returns it with using the sum of variance, and the second with the squared frobenius norm. Tuning ratio is computed as
+    described in the methods section. 
+
+    Parameters: 
+        W_potent: the potent space of the weights matrix found with ridge regression
+        W_null: the null space of the weights matrix found with ridge regression
+        neu_move: dimensionally reduced neural matrix which contains time period 50ms before to 600ms after the movement starts
+        neu_prep: dimensionally reduced neural matrix which contains time period 100ms before to 400ms after the target onset
+    
+    Returns:
+        var_tuning: tuning ratio computed using the sum of variance
+        frob_tuning: tuning ratio computed using the frobenius norm squared 
+    """
+    # movement null and potent space for gamma 
+    N_null_move = neu_move @ W_null 
+    N_null_move -= np.mean(N_null_move, axis=0)
+    null_move_frob = np.linalg.norm(N_null_move)
+    null_move_var = np.sum(np.var(N_null_move, axis=0))
+
+    N_pot_move = neu_move @ W_potent
+    N_pot_move  -= np.mean(N_pot_move, axis=0)
+    pot_move_frob = np.linalg.norm(N_pot_move)
+    pot_move_var = np.sum(np.var(N_pot_move, axis=0))
+    
+    # computing gamma which is a scaling factor
+    gamma = null_move_var / pot_move_var
+    gamma2 = null_move_frob / pot_move_frob
+
+    # Null and potent projections of movement neural data 
+    N_null_prep = neu_prep @ W_null 
+    N_null_prep -= np.mean(N_null_prep, axis = 0)       # subtract columns for variance
+    null_prep_frob = np.linalg.norm(N_null_prep)
+    null_prep_var = np.sum(np.var(N_null_prep, axis=0))
+
+    N_pot_prep = neu_prep @ W_potent
+    N_pot_prep -= np.mean(N_pot_prep, axis = 0)         # subtract columns for variance
+    pot_prep_frob = np.linalg.norm(N_pot_prep)
+    pot_prep_var = np.sum(np.var(N_pot_prep, axis=0))
+
+    # tuning ratio
+    var_tuning = (null_prep_var / pot_prep_var) / gamma    # this is with using the sum of variance
+    frob_tuning = (null_prep_frob / pot_prep_frob) / gamma2    # this is with using the frobenius norm
+
+    # print("Gamma: ",null_move_var / pot_move_var)
+    # print("Tuning with variance: ", tuning)
+    # print("Tuning with frobenius norm: ", tuning2)
+    # print("Move null/pot:", null_move_var / pot_move_var)
+    # print("Prep null/pot:", null_prep_var / pot_prep_var)
+    return var_tuning, frob_tuning
+
+def tuning_fig (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0):
+    """
+    Takes in two tensors and processes them to get the tuning ratio. 
+
+    Parameters: 
+        tensor_N: tensor which has either neural data or PMd data 
+        tensor_M: tensor which has either muscle data or M1 data
+        cv: choosing method of cross-validation, True = 
+        rep: 
+    
+    Returns: 
+        var_tuning:
+        frob_tuning:
+    """
+    
+    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
+    cond, _, fin_tim = tensor_N.shape
+
+    if fin_tim < 229:
+        J = False
+    else: 
+        J = True 
+
+    # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
+    regress_N, _, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    time_ct = regress_M.shape [0]
+    time_ct_neu = regress_N.shape [0]
+
+    # how many time bins are included in the movement period 
+    time_bins = int(time_ct / cond)
+
+    # how many time bins are included in the preparatory and movement period 
+    time_bins_pm = int(time_ct_neu / cond)
+
+    # difference in bins 
+    diff_bin = int((time_bins_pm - time_bins))
+
+    # retrieving data projected onto the first N_dim and M_dim PCs
+    N_tilde,_,_ = run_PCA(regress_N, dims1, mc = False)
+    M_tilde,PCs,_ = run_PCA(regress_M, int(dims1/2), mc = False)
+
+    # isolating the preparatory and movement bins 
+    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+    N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
+    N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
+
+    # reshape into matrices for tuning computation
+    N_tilde_move = shape_matrix(N_tilde_tens_move)
+    N_tilde_prep = shape_matrix(N_tilde_tens_prep)
+
+    var_tuning = []
+    frob_tuning = []
+    
+    for i in rep: 
+        W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
+        U, S_val, V = np.linalg.svd(W1)
+        rank = int(dims1/2)
+
+        # potent and null space basis of W 
+        W_potent = U[:,:rank]
+        W_null = U[:,rank:]
+
+        var_tuning_i, frob_tuning_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
+        var_tuning.append(var_tuning_i)
+        frob_tuning.append(frob_tuning_i)
+    return var_tuning, frob_tuning
