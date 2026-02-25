@@ -898,11 +898,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     N_null /=  max
 
     # setting up time for x axis
-    prep_time = np.arange(300, 810, 10)
+    prep_time = np.arange(0, 810, 10)
     if J:
-        move_time = np.arange(1500, 2160, 10)
+        move_time = np.arange(1250, 2160, 10)
     else: 
-        move_time = np.arange(1420, 2080, 10)
+        move_time = np.arange(1170, 2080, 10)
     
     # setting up for loop
     time_bins = int(N_potent.shape[0] / cond)
@@ -912,11 +912,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
 
     # different limits on the axes depending on which dataset was given
     if J: 
-        bax1 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0]) 
-        bax2 = brokenaxes(xlims=((300, 800), (1500, 2170)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1]) 
+        bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0]) 
+        bax2 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1]) 
     else: 
-        bax1 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0])
-        bax2 = brokenaxes(xlims=((300, 800), (1420, 2090)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1])  
+        bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0])
+        bax2 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1])  
 
     # labels for output null graph
     bax1.text(500, -1.1, "Test Epoch", ha='center')
