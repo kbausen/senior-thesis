@@ -987,10 +987,10 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var) 
 
     print("1/Gamma: ", 1/gamma)
-    print("Tuning with variance: ", var_tuning)
     # print("Tuning with frobenius norm: ", tuning2)
     # print("Move null/pot:", null_move_var / pot_move_var)
     print("Prep null/pot: ", null_prep_var / pot_prep_var)
+    print("Tuning with variance: ", var_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
 def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
