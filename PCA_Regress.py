@@ -986,11 +986,11 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
     pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var) 
 
-    # print("Gamma: ",null_move_var / pot_move_var)
-    # print("Tuning with variance: ", tuning)
+    print("1/Gamma: ", 1/gamma)
+    print("Tuning with variance: ", var_tuning)
     # print("Tuning with frobenius norm: ", tuning2)
     # print("Move null/pot:", null_move_var / pot_move_var)
-    # print("Prep null/pot:", null_prep_var / pot_prep_var)
+    print("Prep null/pot: ", null_prep_var / pot_prep_var)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
 def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
@@ -1048,15 +1048,13 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
     null_frac = []
     pot_frac = []
     
-    for i in range(rep): 
+    for i in range(rep + 1): 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
         U, S_val, V = np.linalg.svd(W1)
         rank = int(dims1/2)
-
         # potent and null space basis of W 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
-
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
@@ -1064,8 +1062,10 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
         pot_frac.append(pot_frac_i)
     return var_tuning, frob_tuning, null_frac, pot_frac
 
-def tuning_mult (tensor_N1, tensor_M1, dims1, tensor_N2 = None, tensor_M2 = None, dims2 = None, cv = False, rep = 0, plot = False):
+def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False, J = False, PMd = False):
     """
+    J: True for if this is monkey J 
+    PMd: True if this is using PMd to M1 analysis
     """
 
     var_tuning_means = []
@@ -1079,29 +1079,26 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, tensor_N2 = None, tensor_M2 = None
         null_frac_means.append(np.mean(null_frac))
         pot_frac_means.append(np.mean(pot_frac))
 
-    if tensor_N2 != None:
-        var_tuning_means2 = []
-        frob_tuning_means2 = []
-        null_frac_means2 = []
-        pot_frac_means2 = []
-        for dims in dims2: 
-            var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N2, tensor_M2, dims, cv, rep)
-            var_tuning_means2.append(np.mean(var_tuning))
-            frob_tuning_means2.append(np.mean(frob_tuning))
-            null_frac_means2.append(np.mean(null_frac))
-            pot_frac_means2.append(np.mean(pot_frac))
+    # if tensor_N2 != None:
+    #     var_tuning_means2 = []
+    #     frob_tuning_means2 = []
+    #     null_frac_means2 = []
+    #     pot_frac_means2 = []
+    #     for dims in dims2: 
+    #         var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N2, tensor_M2, dims, cv, rep)
+    #         var_tuning_means2.append(np.mean(var_tuning))
+    #         frob_tuning_means2.append(np.mean(frob_tuning))
+    #         null_frac_means2.append(np.mean(null_frac))
+    #         pot_frac_means2.append(np.mean(pot_frac))
     
     if plot:
-        fig = plt.figure(figsize=(8, 10))
-        gs = GridSpec(2, 1, figure=fig)
        
-
         # Example data
         
         null_prop = np.array(null_frac_means)
         potent_prop = 1 - null_prop        # ensures they sum to 1
         print(null_prop)
-        print(potent_prop)
+        print(pot_frac_means)
 
         x = np.arange(len(dims1))           # group positions
         width = 0.35                       # bar width
@@ -1114,12 +1111,31 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, tensor_N2 = None, tensor_M2 = None
         # Potent bars (all same color)
         ax.bar(x + width/2, potent_prop, width, label="Potent", color="green")
 
+        for i in range(len(dims1)):
+            ax.text(
+            x[i],                      # center of the two bars
+            max(null_prop[i], potent_prop[i]) + 0.05,  # above taller bar
+            f"{var_tuning_means[i]:.2f}",     # <-- put whatever value you want here
+            ha='center',
+            va='bottom',
+            fontsize=9
+                )       
         ax.set_xticks(x)
         ax.set_xticklabels(dims1)
         ax.set_xlabel("Number of Dimensions")
         ax.set_ylabel("Proportion of Activity")
         ax.set_ylim(0, 1)
         ax.legend()
+        if J:
+            J_text = "J"
+        else:
+            J_text = "M"
+        if PMd: 
+            an_text = "PMd to M1"
+        else: 
+            an_text = "Neurons to Muscles"
+        title_text = f"Monkey {J_text} {an_text} Tuning Ratio"
 
+        ax.set_title(title_text)
         plt.tight_layout()
         plt.show()
