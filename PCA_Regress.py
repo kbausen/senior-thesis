@@ -1107,7 +1107,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
     frob_tuning_means = []
     null_frac_means = []
     pot_frac_means = []
-    for dims in dims1: 
+    for dims in range(dims1): 
         var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, dims, cv, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
