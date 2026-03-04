@@ -1098,7 +1098,7 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
         if time: 
-            return W_potent, W_null, N_tilde
+            return W_potent, W_null
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
