@@ -928,6 +928,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     bax1.text(500, -1.1, "Test Epoch", ha='center')
     bax1.text(1800, -1.1, "Regression Epoch", ha='center')
     bax1.set_title(f"Output Null Dimension {basis + 1}")
+    bax1.set_xlabel("Time in Trial")
     bax1.set_ylabel("Projection (a.u.)")
   
 
