@@ -699,7 +699,7 @@ def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, ten
     Parameters: 
         tensor_N: This is the inter_PSTH for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH for the M matrix in the equation M = WN
-        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
         scale: this boolean will scale the data from 0 and 1 if True 
         mean_c : this boolean will mean center the tensor data if True
         tensors: this boolean will return the spliced tensor [conditions, neurons, new time bins], with all other 
@@ -754,11 +754,11 @@ def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, ten
 
     # cutting the M tensor with the times in  movement period
     if PMd:
-        M_move_start = N_move_start + 5
-        M_move_end = N_move_end + 5
-    else:
         M_move_start = N_move_start
         M_move_end = N_move_end
+    else:
+        M_move_start = N_move_start + 5
+        M_move_end = N_move_end + 5
     M_idx = np.r_[M_move_start:M_move_end]
     M_move = tensor_M[:,:, M_idx]
     
@@ -814,7 +814,7 @@ def fig_4 (tensor_N, tensor_M, PMd = False, dimensions = 6, plot = False, basis 
     Parameters: 
         tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
-        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
         dimensions: the amount of dimensions matrix N should be reduced to 
         plot: boolean which will call fig_4_plot if True 
         basis: parameter for fig_4_plot 
@@ -1041,7 +1041,7 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
     Parameters: 
         tensor_N: tensor which has either neural data or PMd data 
         tensor_M: tensor which has either muscle data or M1 data
-        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
         cv: choosing method of cross-validation, True = method called best lambda 
         rep: how many repeats it should perform
     
@@ -1098,7 +1098,7 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
         if time: 
-            return W_potent, W_null
+            return W_potent, W_null, N_tilde
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
@@ -1117,7 +1117,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
     null_frac_means = []
     pot_frac_means = []
     for dims in range(dims1): 
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, dims, cv, rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, PMd, dims, cv, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
