@@ -691,7 +691,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
 
 
-def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False, fig4 = False):
+def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, tensors = False, fig4 = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is 
     necessary before PCA or anything can be run on the data 
@@ -699,6 +699,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
     Parameters: 
         tensor_N: This is the inter_PSTH for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH for the M matrix in the equation M = WN
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
         scale: this boolean will scale the data from 0 and 1 if True 
         mean_c : this boolean will mean center the tensor data if True
         tensors: this boolean will return the spliced tensor [conditions, neurons, new time bins], with all other 
@@ -748,12 +749,16 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
-    # isolates movement and preparatory data needed for the regression to find W tilde and tuning 
+    # isolates movement data needed for the regression to find W tilde and tuning 
     N_move = tensor_N[:,:, N_move_start:N_move_end]
 
     # cutting the M tensor with the times in  movement period
-    M_move_start = N_move_start + 5
-    M_move_end = N_move_end + 5
+    if PMd:
+        M_move_start = N_move_start + 5
+        M_move_end = N_move_end + 5
+    else:
+        M_move_start = N_move_start
+        M_move_end = N_move_end
     M_idx = np.r_[M_move_start:M_move_end]
     M_move = tensor_M[:,:, M_idx]
     
@@ -802,13 +807,14 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = False):
+def fig_4 (tensor_N, tensor_M, PMd = False, dimensions = 6, plot = False, basis = 0, cv = False):
     """
     Performs regression needed for figure 4. 
 
     Parameters: 
         tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
         dimensions: the amount of dimensions matrix N should be reduced to 
         plot: boolean which will call fig_4_plot if True 
         basis: parameter for fig_4_plot 
@@ -830,7 +836,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
         J = True       # identifies what data set it is working with and will ensure the correct timecuts occur
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, PMd)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -860,7 +866,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
                                                                                          mc = False, cv = cv)
 
     if plot:
-        regress_N, _,_ = time_shift(tensor_N, tensor_M, tensors = False, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        regress_N, _,_ = time_shift(tensor_N, tensor_M, PMd = PMd, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
@@ -1028,15 +1034,16 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     print("Tuning with variance: ", var_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
-def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
+def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 0, time = False):
     """
     Takes in two tensors and processes them to get the tuning ratio. 
 
     Parameters: 
         tensor_N: tensor which has either neural data or PMd data 
         tensor_M: tensor which has either muscle data or M1 data
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of PMd)
         cv: choosing method of cross-validation, True = method called best lambda 
-        rep: 
+        rep: how many repeats it should perform
     
     Returns: 
         var_tuning:
@@ -1052,7 +1059,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
         J = True 
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
-    regress_N, _, regress_M = time_shift(tensor_N, tensor_M, tensors = False)
+    regress_N, _, regress_M = time_shift(tensor_N, tensor_M, PMd = PMd)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -1090,6 +1097,8 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0):
         # potent and null space basis of W 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
+        if time: 
+            return W_potent, W_null
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
