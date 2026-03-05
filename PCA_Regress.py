@@ -584,7 +584,7 @@ def fig_3_cut_t(tensor, dimensions):
     # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
-    print(time_bins)
+    
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
@@ -612,7 +612,7 @@ def fig_3_cut_t(tensor, dimensions):
                     # just making sure it is 2D and not 3D
                     current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
 
-                    if i < dimensions - 1 & J:
+                    if (i < dimensions - 1) and J:
                         #retrieving the projected data
                         dim1 = current_cond[i]
                         dim2 = current_cond[k]
@@ -624,7 +624,7 @@ def fig_3_cut_t(tensor, dimensions):
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
                         axs[c].set_ylabel(f"Dimension {k + 1}")
-                print(c)
+                
                 c +=1
 
              
