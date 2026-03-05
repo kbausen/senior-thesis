@@ -1017,7 +1017,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     
     # bax1.legend(loc = 2)
     
-def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False):
+def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 108):
     """
     Takes in the weights matrix from ridge regression and it's null space, as well as neural activity from the movement and preparatory period and computes the 
     tuning ratio in two ways. The first returns it with using the sum of variance, and the second with the squared frobenius norm. Tuning ratio is computed as
@@ -1035,13 +1035,17 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False):
     """
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
-    N_null_move -= np.mean(N_null_move, axis=0)
-    null_move_frob = np.linalg.norm(N_null_move)
+    N_nm_tensor = shape_tensor(N_null_move, cond)
+    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
+    N_null_move = shape_matrix(N_nm_tensor)
+    null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
-    N_pot_move  -= np.mean(N_pot_move, axis=0)
-    pot_move_frob = np.linalg.norm(N_pot_move)
+    N_pm_tensor = shape_tensor(N_pot_move, cond)
+    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
+    N_pot_move = shape_matrix(N_pm_tensor)
+    pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
     
     # computing gamma which is a scaling factor
@@ -1050,13 +1054,17 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False):
 
     # Null and potent projections of movement neural data 
     N_null_prep = neu_prep @ W_null 
-    N_null_prep -= np.mean(N_null_prep, axis = 0)       # subtract columns for variance
-    null_prep_frob = np.linalg.norm(N_null_prep)
+    N_np_tensor = shape_tensor(N_null_prep, cond)
+    N_np_tensor -= N_np_tensor.mean(axis=0, keepdims=True)
+    N_null_prep = shape_matrix(N_np_tensor)       # subtract columns for variance
+    null_prep_frob = np.linalg.norm(N_null_prep)**2
     null_prep_var = np.sum(np.var(N_null_prep, axis=0))
 
     N_pot_prep = neu_prep @ W_potent
-    N_pot_prep -= np.mean(N_pot_prep, axis = 0)         # subtract columns for variance
-    pot_prep_frob = np.linalg.norm(N_pot_prep)
+    N_pp_tensor = shape_tensor(N_pot_prep, cond)
+    N_pp_tensor -= N_pp_tensor.mean(axis=0, keepdims=True)
+    N_pot_prep = shape_matrix(N_pp_tensor)       # subtract columns for variance
+    pot_prep_frob = np.linalg.norm(N_pot_prep)**2
     pot_prep_var = np.sum(np.var(N_pot_prep, axis=0))
 
     # tuning ratio
@@ -1141,9 +1149,9 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
         W_null = U[:,rank:]
 
         if time: 
-            gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True)
-            return W_potent, W_null
-        var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
+            gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
+            return W_potent, W_null, gamma
+        var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, cond = cond)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
         null_frac.append(null_frac_i)
