@@ -1017,7 +1017,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     
     # bax1.legend(loc = 2)
     
-def tuning_rat (W_potent, W_null, neu_move, neu_prep):
+def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False):
     """
     Takes in the weights matrix from ridge regression and it's null space, as well as neural activity from the movement and preparatory period and computes the 
     tuning ratio in two ways. The first returns it with using the sum of variance, and the second with the squared frobenius norm. Tuning ratio is computed as
@@ -1066,6 +1066,8 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     # fraction of prep in null space and potent space
     null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
     pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var) 
+    if get_gamma: 
+        return gamma
 
     print("1/Gamma: ", 1/gamma)
     # print("Tuning with frobenius norm: ", tuning2)
@@ -1139,6 +1141,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
         W_null = U[:,rank:]
 
         if time: 
+            gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True)
             return W_potent, W_null
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
         var_tuning.append(var_tuning_i)
@@ -1243,7 +1246,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     else: 
         return var_tuning_means, frob_tuning_means, null_frac_means, pot_frac_means
     
-def sup_tuning (tensor_N, tensor_M, dims = 6):
+def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     # retrieving dataset specifications 
     J, PMd = ident(tensor_N)
@@ -1252,7 +1255,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
     cond, _, fin_time = tensor_N.shape
     regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)
     N_tilde, _, _ = run_PCA(regress_N, dims)
-    W_potent, W_null = tuning_setup(tensor_N, tensor_M, dims, time = True)
+    W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
     N_potent = N_tilde @ W_potent
@@ -1273,12 +1276,15 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
         X_null = null_tensor[:, :, t]
         
         # subtract across-condition mean
-        X_null = X_null - X_null.mean(axis=0, keepdims=True)
-        X_pot  = X_pot  - X_pot.mean(axis=0, keepdims=True)
+        X_null -= X_null.mean(axis=0, keepdims=True)
+        X_pot  -= X_pot.mean(axis=0, keepdims=True)
 
         # squaring and adding values and dividing by condition numbers to compute variance
         V_null[t] = np.sum(X_null**2) / cond
         V_pot[t]  = np.sum(X_pot**2)  / cond
+
+    if fig_4D: 
+         V_null = (1/gamma) * V_null
     
     # initializing figure parameters 
     fig = plt.figure
@@ -1327,7 +1333,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
         an_text = "PMd to M1"
     else: 
         an_text = "Neurons to Muscles"
-    title_text = f"Monkey {J_text} {an_text} Tuning Ratio"
+    title_text = f"Monkey {J_text} {an_text} Variance"
+    if fig_4D: 
+        title_text = f"Monkey {J_text} {an_text} Tuning"
     bax1.set_title(title_text)
     bax1.set_xlabel("Time")
     bax1.set_ylabel("Variance")
