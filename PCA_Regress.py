@@ -607,7 +607,7 @@ def fig_3_cut_t(tensor, dimensions):
            
             if k != i:          
                 for j in range(conditions):
-                    current_cond = scaled_tensor[i, :, :]
+                    current_cond = scaled_tensor[j, :, :]
                     current_cond = np.squeeze(current_cond)
                     dim1 = current_cond[i, :]
                     dim2 = current_cond[k, :]
