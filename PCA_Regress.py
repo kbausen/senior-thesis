@@ -838,7 +838,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, PMd)
+    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -868,7 +868,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
                                                                                          mc = False, cv = cv)
 
     if plot:
-        regress_N, _,_ = time_shift(tensor_N, tensor_M, PMd = PMd, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
@@ -1087,7 +1087,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
-    regress_N, _, regress_M = time_shift(tensor_N, tensor_M, PMd = PMd)
+    regress_N, _, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -1240,7 +1240,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
-    regress_N, _, _ = time_shift(tensor_N, tensor_M, PMd = PMd, fig4 = True)
+    regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)
     N_tilde, _, _ = run_PCA(regress_N, dims)
     W_potent, W_null = tuning_setup(tensor_N, tensor_M, PMd, dims, time = True)
     
