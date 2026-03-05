@@ -975,7 +975,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='red', label = 'potent'  linewidth = .5)
+        bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='purple', label = 'potent',  linewidth = .5)
         bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='purple',  linewidth = .5)
     
     if J:
