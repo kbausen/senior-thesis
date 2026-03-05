@@ -16,22 +16,22 @@ from matplotlib.gridspec import GridSpec
 
 
 
-def shape_matrix (array):
+def shape_matrix (tensor):
     """ 
     This function takes in the interpPSTH array and will reshape it from [conditions, neurons, time bins] to a 2D matrix [conditions x timebins, neurons]
 
     Parameters: 
-        array: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
+        array: must be an interpPSTH tensor which has the shape [conditions, neurons, time bins]
 
     Returns: 
         new_mat: reshaped the array into a 2 dimension matrix [conditions x timebins, neurons]--making it a tall and skinny array for SVD
     """
-    conditions, neurons, time_bins = array.shape
+    conditions, neurons, time_bins = tensor.shape
     new_mat = np.zeros((conditions * time_bins, neurons))
 
-    # reshapes the array to insert all time bins for one condition for each neuron, then moves onto the next condition
+    # reshapes the tensor to insert all time bins for one condition for each neuron, then moves onto the next condition
     for i in range(conditions):
-        new_mat[i*time_bins:(i+1)*time_bins, :] = array[i,:,:].T
+        new_mat[i*time_bins:(i+1)*time_bins, :] = tensor[i,:,:].T
     return new_mat
 
 def shape_tensor (matrix, conditions, time_bins = None):
@@ -57,7 +57,37 @@ def shape_tensor (matrix, conditions, time_bins = None):
         new_tensor[i,:,:] = matrix[low_t:high_t, :].T
     return new_tensor
 
+def ident (tensor_N):
+    """
+    Identifies what dataset is being used for corresponding time cuts and titles 
 
+    Parameters: 
+        tensor_N: This is the inter_PSTH tensor [conditions, neurons, time] for the N matrix in the equation M = WN
+
+    Returns: 
+        J: boolean which specifies if this is dataset J or not 
+        PMd: boolean which specifies if this is a PMd tensor or includes all neurons 
+    """
+
+    # identifying dataset N or J to ensure correct time splits and titles 
+    cond, neu, fin_tim = tensor_N.shape
+    if fin_tim < 229:
+        J = False
+    else: 
+        J = True 
+    
+    if J: 
+        if cond > 30: 
+            PMd = True
+        else: 
+            PMd = False
+    else: 
+        if neu < 150: 
+            PMd = True
+        else: 
+            PMd = False
+    
+    return J, PMd
 
 
 def svd (matrix, plot = False): 
@@ -166,7 +196,7 @@ def amt_var (matrix, rank):
 
     print(f'{frac}% variance explained')
 
-def run_PCA (matrix, rank, mc = False):
+def run_PCA (matrix, rank):
     """ 
     This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
     before). It will then perform a rank k approximation using the specified rank and return the projected data. 
@@ -183,17 +213,9 @@ def run_PCA (matrix, rank, mc = False):
     # runs PCA 
     U, S_, V_T = svd(matrix)
 
-    # create a mean centered matrix
-    if mc:
-        mean_c = matrix - np.mean(matrix, axis = 0)
-
-        # project the mean centered data onto these PCs to produce a rank k approximation
-        proj = mean_c @  U[:, :rank] 
-    
+    # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ U[:,:rank]
-    
-
-   
+       
     # takes the dot product of proj_set and V_T to get the rank k approximation, 
     # print(f"proj shape is {proj_set.shape}")
     # print(f"V_T shape is {V_T.shape}")
@@ -556,6 +578,9 @@ def fig_3_cut_t(tensor, dimensions):
         tensor: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
         dimensions: the number of dimensions to project onto (should be between 6 and 10)
     """
+    # retrieving dataset specifications 
+    J, _ = ident(tensor)
+
     # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
@@ -574,8 +599,10 @@ def fig_3_cut_t(tensor, dimensions):
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
     c = 0
+    print(left_vec.shape)
     
     for i in range(dimensions - 1):
+
         # dimension 1 for projection
         dim1_vector = left_vec[:,i]
     
@@ -591,7 +618,7 @@ def fig_3_cut_t(tensor, dimensions):
                     # just making sure it is 2D and not 3D
                     current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
 
-                    if i < dimensions - 1 & scaled_tensor.shape[2] == 236:
+                    if i < dimensions - 1 & J:
                         #projecting the data
                         dim1 = current_cond.T @ dim1_vector
                         dim2 = current_cond.T @ dim2_vector
@@ -638,6 +665,9 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         d1: the first PC selected for projection (the range is 1 through dimensions)
         d2: the second PC selected for projection (the range is 1 through dimensions)
     """
+    # retrieving dataset specifications 
+    J, _ = ident(tensor)
+
    # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
@@ -658,8 +688,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     # dimension 2 for projection
     dim2_vector = left_vec[:, d2-1]
     
-    for j in range(conditions):
-        current_cond = scaled_tensor[j, :, :]
+    for i in range(conditions):
+        current_cond = scaled_tensor[i, :, :]
 
         # just making sure it is 2D and not 3D
         current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
@@ -668,7 +698,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         dim1 = current_cond.T @ dim1_vector
         dim2 = current_cond.T @ dim2_vector
 
-        if scaled_tensor.shape[2] == 236:
+        if J:
             plt.plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
             plt.plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
             plt.plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
@@ -676,6 +706,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
             plt.xlabel(f"Dimension {d1}")
             plt.label(f"Dimension {d2}")
+            plt.legend(loc = 3)
 
         else: 
             plt.plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
@@ -685,13 +716,14 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
             plt.xlabel(f"Dimension {d1}")
             plt.ylabel(f"Dimension {d2}")
+            plt.legend(loc = 2)
 
     plt.tight_layout()
     plt.show()
 
 
 
-def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, tensors = False, fig4 = False):
+def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False, fig4 = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is 
     necessary before PCA or anything can be run on the data 
@@ -728,23 +760,27 @@ def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, ten
     N_prep_start = 30
     N_prep_end = 81     # 81 because it will get spliced off otherwise
 
+    # retrieving dataset specifications 
+    J, PMd = ident(tensor_N)
 
-    if tensor_N.shape[2] < 229:    # dataset N
-        N_move_start = 142
-        N_move_end = 208
-    else:                          # dataset J
+    # altering movement periods depending on dataset 
+    if J: 
         N_move_start = 150 
         N_move_end = 216
-
+    else:
+        N_move_start = 142
+        N_move_end = 208
+        
+    # retrieving specific indexes for figure 4 
     if fig4: 
         N_prep_start = 0
         N_prep_end = 81 
-        if tensor_N.shape[2] < 229:    # dataset N
-            N_move_start = 117
-            N_move_end = 208
-        else:                          # dataset J
+        if J:                          
             N_move_start = 125 
             N_move_end = 216
+        else: 
+            N_move_start = 117
+            N_move_end = 208
      
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
@@ -752,7 +788,7 @@ def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, ten
     # isolates movement data needed for the regression to find W tilde and tuning 
     N_move = tensor_N[:,:, N_move_start:N_move_end]
 
-    # cutting the M tensor with the times in  movement period
+    # cutting the M tensor with the times in movement period, depending on if it maps to muscles or not 
     if PMd:
         M_move_start = N_move_start
         M_move_end = N_move_end
@@ -799,7 +835,7 @@ def time_cut (tensor, go_cue = True):
         go_cue: this is a parameter which will include the time point at the go que
 
     Returns: 
-        cut_tensor: inter_PSTH tensor with only time bins during preparatory activity 
+        cut_tensor: inter_PSTH tensor with only time bins during preparatory activity, go cue, and movement  
     """
     if go_cue:
         N_idx = np.r_[30:80, 120, 150:216]
@@ -807,12 +843,12 @@ def time_cut (tensor, go_cue = True):
         N_idx = np.r_[30:80, 150:216]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, PMd = False, dimensions = 6, plot = False, basis = 0, cv = False):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = False):
     """
     Performs regression needed for figure 4. 
 
     Parameters: 
-        tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
+        tensor_N: This is the inter_PSTH tensor [conditions, neurons, time] for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
         PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
         dimensions: the amount of dimensions matrix N should be reduced to 
@@ -827,13 +863,12 @@ def fig_4 (tensor_N, tensor_M, PMd = False, dimensions = 6, plot = False, basis 
         R_squared: array of the R squared values for each column of M_hat, in comparison to M_tilde
         MSE: The mean squared error of M_hat in comparison to M_tilde
     """
-    # components needed for later
-    cond, _, fin_tim = tensor_N.shape
-    
-    if fin_tim < 229:
-        J = False
-    else: 
-        J = True       # identifies what data set it is working with and will ensure the correct timecuts occur
+
+    # retrieving number of conditions 
+    cond = tensor_N.shape[0]
+
+    # retrieving dataset specifications 
+    J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, PMd)
@@ -1062,7 +1097,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     print("Tuning with variance: ", var_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
-def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 0, time = False):
+def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = False):
     """
     Takes in two tensors and processes them to get the tuning ratio. 
 
@@ -1078,13 +1113,11 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
         frob_tuning:
     """
     
-    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
-    cond, _, fin_tim = tensor_N.shape
+    # retrieving number of conditions 
+    cond = tensor_N.shape[0]
 
-    if fin_tim < 229:
-        J = False
-    else: 
-        J = True 
+    # retrieving dataset specifications 
+    J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
     regress_N, _, regress_M = time_shift(tensor_N, tensor_M, PMd = PMd)
@@ -1163,24 +1196,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     if type(dims) == int:
         dims = np.array([dims])
 
-
-    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
-    cond, neu, fin_tim = tensor_N.shape
-    if fin_tim < 229:
-        J = False
-    else: 
-        J = True 
-    
-    if J: 
-        if cond > 30: 
-            PMd = True
-        else: 
-            PMd = False
-    else: 
-        if neu < 150: 
-            PMd = True
-        else: 
-            PMd = False
+    # retrieving dataset specifications 
+    J, PMd = ident(tensor_N)
 
     # initializing arrays to hold the average values for each set of dimensions 
     var_tuning_means = []
@@ -1251,24 +1268,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     
 def sup_tuning (tensor_N, tensor_M, dims = 6):
 
-     # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
-    cond, neu, fin_tim = tensor_N.shape
-    if fin_tim < 229:
-        J = False
-    else: 
-        J = True 
-    
-    if J: 
-        if cond > 30: 
-            PMd = True
-        else: 
-            PMd = False
-    else: 
-        if neu < 150: 
-            PMd = True
-        else: 
-            PMd = False
-
+    # retrieving dataset specifications 
+    J, PMd = ident(tensor_N)
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
