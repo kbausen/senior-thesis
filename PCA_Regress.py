@@ -1137,7 +1137,7 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
         pot_frac.append(pot_frac_i)
     return var_tuning, frob_tuning, null_frac, pot_frac
 
-def tuning_mult (tensor_N, tensor_M, dims, PMd = False, plot = False, rep = 1, cv = False):
+def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     """
     Function which takes two tensors, performs reduced rank regression with the set of dimensions, and will plot the proportion of preparatory activity occupying the 
     null space and potent space, as well as have the tuning ratio above it. The regression can be repeated multiple times for one set of dimension and the tuning 
@@ -1165,11 +1165,22 @@ def tuning_mult (tensor_N, tensor_M, dims, PMd = False, plot = False, rep = 1, c
 
 
     # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
-    cond, _, fin_tim = tensor_N.shape
+    cond, neu, fin_tim = tensor_N.shape
     if fin_tim < 229:
         J = False
     else: 
         J = True 
+    
+    if J: 
+        if cond > 30: 
+            PMd = True
+        else: 
+            PMd = False
+    else: 
+        if neu > 150: 
+            PMd = False
+        else: 
+            PMd = True
 
     # initializing arrays to hold the average values for each set of dimensions 
     var_tuning_means = []
