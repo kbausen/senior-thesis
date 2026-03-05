@@ -1035,16 +1035,16 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     """
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
-    N_nm_tensor = shape_tensor(N_null_move, cond)
-    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
-    N_null_move = shape_matrix(N_nm_tensor)
+    # N_nm_tensor = shape_tensor(N_null_move, cond)
+    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
+    # N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
-    N_pm_tensor = shape_tensor(N_pot_move, cond)
-    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
-    N_pot_move = shape_matrix(N_pm_tensor)
+    # N_pm_tensor = shape_tensor(N_pot_move, cond)
+    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
+    # N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
     
@@ -1082,6 +1082,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # print("Move null/pot:", null_move_var / pot_move_var)
     print("Prep null/pot: ", null_prep_var / pot_prep_var)
     print("Tuning with variance: ", var_tuning)
+    print("Tuning with frob: ", frob_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
 def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = False):
