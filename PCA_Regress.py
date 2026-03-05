@@ -964,11 +964,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         end_move = end_prep + len(move_time)
 
         if i == 0:
-            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='indigo', label = 'null',  linewidth = .5)
-            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='indigo',  linewidth = .5)
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue', label = 'null',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
         else: 
-            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='indigo',  linewidth = .5)
-            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='indigo',  linewidth = .5)
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
     
     # labels for output potent graph
     bax2.text(500, -1.1, "Test Epoch", ha='center')
@@ -1206,10 +1206,10 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
         fig, ax = plt.subplots(figsize=(8, 5))
 
         # Null bars (all same color)
-        ax.bar(x - width/2, null_prop, width, label="Null", color="indigo")
+        ax.bar(x - width/2, null_prop, width, label="Null", color='midnightblue')
 
         # Potent bars (all same color)
-        ax.bar(x + width/2, potent_prop, width, label="Potent", color="darkmagenta")
+        ax.bar(x + width/2, potent_prop, width, label="Potent", color='darkmagenta')
 
         for i in range(len(dims)):
             ax.text(
@@ -1300,8 +1300,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
         J_text = "N"
 
     # plotting data
-    bax1.plot(prep_time, V_null[prep_idx], '-', color='indigo', label = 'null', linewidth = 1)
-    bax1.plot(move_time, V_null[move_idx_start:], '-', color='indigo',  linewidth = 1)
+    bax1.plot(prep_time, V_null[prep_idx], '-', color='midnightblue', label = 'null', linewidth = 1)
+    bax1.plot(move_time, V_null[move_idx_start:], '-', color='midnightblue',  linewidth = 1)
     bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
     bax1.plot(move_time, V_pot[move_idx_start:], '-', color='darkmagenta',  linewidth = 1)
 
