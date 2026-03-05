@@ -665,18 +665,23 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     
     for i in range(conditions):
         current_cond = scaled_tensor[i, :, :]
+        current_cond = np.squeeze(current_cond)
+        dim1 = current_cond[d1, :]
+        dim2 = current_cond[d2, :]
 
-        # just making sure it is 2D and not 3D
-        current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
-        
-        #retrieving the projected data
-        dim1 = current_cond[d1,:]
-        dim2 = current_cond[d2,:]
-
-        plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
-        plt.plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
-        plt.plot(dim1[52:117], dim2[52:117], '-', color='green', label='Movement')
-        plt.plot(dim1[117], dim2[117], 'o', color='red', label='Movement')
+        if i == 0:
+            print(current_cond.shape)
+            print(dim1.shape)
+            print(dim2.shape)
+            plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
+            plt.plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
+            plt.plot(dim1[52:117], dim2[52:117], '-', color='green', label='Movement')
+            plt.plot(dim1[117], dim2[117], 'o', color='red', label='End')
+        else:
+            plt.plot(dim1[:51], dim2[:51], '-', color='blue')
+            plt.plot(dim1[51], dim2[51], 'o', color='gray')
+            plt.plot(dim1[52:117], dim2[52:117], '-', color='green')
+            plt.plot(dim1[117], dim2[117], 'o', color='red')
 
     plt.xlabel(f"Dimension {d1}")
     plt.ylabel(f"Dimension {d2}")
