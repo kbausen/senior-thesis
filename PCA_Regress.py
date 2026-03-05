@@ -960,8 +960,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='blue',  linewidth = .5)
-        bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='green',  linewidth = .5)
+        bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='red', label = 'null',  linewidth = .5)
+        bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='red',  linewidth = .5)
     
     # labels for output potent graph
     bax2.text(500, -1.1, "Test Epoch", ha='center')
@@ -975,8 +975,35 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='blue',  linewidth = .5)
-        bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='green',  linewidth = .5)
+        bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='red', label = 'potent'  linewidth = .5)
+        bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='purple',  linewidth = .5)
+    
+    if J:
+        # prep ticks
+        bax1.axs[0].set_xticks([0, 400, 800])
+        bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
+        bax2.axs[0].set_xticks([0, 400, 800])
+        bax2.axs[0].set_xticklabels(['-400', 'targ', '400'])
+
+        # movement ticks 
+        bax1.axs[1].set_xticks([1250, 1550, 2170])
+        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+        bax2.axs[1].set_xticks([1250, 1550, 2170])
+        bax2.axs[1].set_xticklabels(['-300', 'move', '600'])
+    else:
+        # prep ticks 
+        bax1.axs[0].set_xticks([0, 400, 800])
+        bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
+        bax2.axs[0].set_xticks([0, 400, 800])
+        bax2.axs[0].set_xticklabels(['-400', 'targ', '400'])
+
+        # movement ticks 
+        bax1.axs[1].set_xticks([1170, 1470, 2090])
+        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+        bax2.axs[1].set_xticks([1170, 1470, 2090])
+        bax2.axs[1].set_xticklabels(['-300', 'move', '600'])
+    
+    bax1.legend(loc = 2)
     
 def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     """
@@ -1092,12 +1119,15 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
     pot_frac = []
     
     for i in range(rep + 1): 
+        # computing W 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
         U, S_val, V = np.linalg.svd(W1)
         rank = int(dims1/2)
+
         # potent and null space basis of W 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
+
         if time: 
             return W_potent, W_null
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep)
@@ -1107,35 +1137,55 @@ def tuning_setup (tensor_N, tensor_M, PMd = False, dims1 = 6, cv = False, rep = 
         pot_frac.append(pot_frac_i)
     return var_tuning, frob_tuning, null_frac, pot_frac
 
-def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False, J = False, PMd = False):
+def tuning_mult (tensor_N, tensor_M, dims, PMd = False, plot = False, rep = 1, cv = False):
     """
-    J: True for if this is monkey J 
-    PMd: True if this is using PMd to M1 analysis
+    Function which takes two tensors, performs reduced rank regression with the set of dimensions, and will plot the proportion of preparatory activity occupying the 
+    null space and potent space, as well as have the tuning ratio above it. The regression can be repeated multiple times for one set of dimension and the tuning 
+    ratios will be averaged, as well as the proportions mentioned before. Can also just return the values mentioned. 
+
+    Parameters: 
+        tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
+        tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
+        dims: the amount of dimensions matrix N should be reduced to 
+        PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
+        plot: boolean which will form a plot if True 
+        rep: the number of times the regression will be repeated, then tuning ratios from these will be averaged together 
+        cv: boolean selecting RidgeCV cross validation (False for that package)
+    
+    Returns: 
+        var_tuning_means: an array which has one value for the average tuning ratio based on the repeats specified for one set of dimensions, used variance
+        frob_tuning_means: an array which has one value for the average tuning ratio based on the repeats specified for one set of dimensions, used frobenius norm 
+        null_frac_means: an array which has values for the proportion of preparatory activity occupying the null space (1 value for each set of dimensions)
+        pot_frac_means: an array which has values for the proportion of preparatory activity occupying the potent space (1 value for each set of dimensions)
     """
 
+    # making sure this is the correct type of object for the for loop 
+    if type(dims) == int:
+        dims = np.array([dims])
+
+
+    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
+    cond, _, fin_tim = tensor_N.shape
+    if fin_tim < 229:
+        J = False
+    else: 
+        J = True 
+
+    # initializing arrays to hold the average values for each set of dimensions 
     var_tuning_means = []
     frob_tuning_means = []
     null_frac_means = []
     pot_frac_means = []
-    for dims in dims1: 
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, PMd, dims, cv, rep)
+
+    # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
+    for dim in dims: 
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N, tensor_M, PMd, dim, cv, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
         pot_frac_means.append(np.mean(pot_frac))
-
-    # if tensor_N2 != None:
-    #     var_tuning_means2 = []
-    #     frob_tuning_means2 = []
-    #     null_frac_means2 = []
-    #     pot_frac_means2 = []
-    #     for dims in dims2: 
-    #         var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N2, tensor_M2, dims, cv, rep)
-    #         var_tuning_means2.append(np.mean(var_tuning))
-    #         frob_tuning_means2.append(np.mean(frob_tuning))
-    #         null_frac_means2.append(np.mean(null_frac))
-    #         pot_frac_means2.append(np.mean(pot_frac))
     
+    # plotting 
     if plot:
        
         # Example data
@@ -1145,7 +1195,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
         print(null_prop)
         print(pot_frac_means)
 
-        x = np.arange(len(dims1))           # group positions
+        x = np.arange(len(dims))           # group positions
         width = 0.35                       # bar width
 
         fig, ax = plt.subplots(figsize=(8, 5))
@@ -1156,7 +1206,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
         # Potent bars (all same color)
         ax.bar(x + width/2, potent_prop, width, label="Potent", color="green")
 
-        for i in range(len(dims1)):
+        for i in range(len(dims)):
             ax.text(
             x[i],                      # center of the two bars
             max(null_prop[i], potent_prop[i]) + 0.05,  # above taller bar
@@ -1166,7 +1216,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
             fontsize=9
                 )       
         ax.set_xticks(x)
-        ax.set_xticklabels(dims1)
+        ax.set_xticklabels(dims)
         ax.set_xlabel("Number of Dimensions")
         ax.set_ylabel("Fraction of Preparatory Tuning")
         ax.set_ylim(0, 1)
@@ -1184,3 +1234,99 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
         ax.set_title(title_text)
         plt.tight_layout()
         plt.show()
+
+    else: 
+        return var_tuning_means, frob_tuning_means, null_frac_means, pot_frac_means
+    
+def sup_tuning (tensor_N, tensor_M, PMd = False, dims = 6):
+
+    # getting weights matrix for potent and null space 
+    cond, _, fin_time = tensor_N.shape
+    regress_N, _, _ = time_shift(tensor_N, tensor_M, PMd = PMd, fig4 = True)
+    N_tilde, _, _ = run_PCA(regress_N, dims)
+    W_potent, W_null = tuning_setup(tensor_N, tensor_M, PMd, dims, time = True)
+    
+    # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
+    N_potent = N_tilde @ W_potent
+    N_null = N_tilde @ W_null
+
+    # reshaping into a tensor 
+    pot_tensor = shape_tensor(N_potent, cond)
+    null_tensor = shape_tensor(N_null, cond)
+    _, _, time = pot_tensor.shape
+
+    # initializing array for holding the variance 
+    V_pot = np.zeros(time)
+    V_null = np.zeros(time)
+
+    # goes through all time steps and pulls all conditions 
+    for t in range (time):
+        X_pot  = pot_tensor[:, :, t]
+        X_null = null_tensor[:, :, t]
+        
+        # subtract across-condition mean
+        X_null = X_null - X_null.mean(axis=0, keepdims=True)
+        X_pot  = X_pot  - X_pot.mean(axis=0, keepdims=True)
+
+        # squaring and adding values and dividing by condition numbers to compute variance
+        V_null[t] = np.sum(X_null**2) / cond
+        V_pot[t]  = np.sum(X_pot**2)  / cond
+    
+    # initializing figure parameters 
+    fig = plt.figure
+    gs = GridSpec(1, 1, figure=fig)
+
+    # telling which dataset it is 
+    if fin_time < 229:
+        J = False
+    else: 
+        J = True
+
+    # time for plotting x axis and indexes needed for correct slicing
+    prep_time = np.arange(0, 810, 10)
+    prep_idx = np.arange(81)
+    move_idx_start = len(prep_idx)
+        
+    # different limits on the axes depending on which dataset was given
+    if J: 
+        bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, 2),), hspace=.05, subplot_spec=gs[0]) 
+        move_time = np.arange(1250, 2160, 10)
+        J_text = "J"
+    else: 
+        bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, 2),), hspace=.05, subplot_spec=gs[0]) 
+        move_time = np.arange(1170, 2080, 10)
+        J_text = "N"
+
+    # plotting data
+    bax1.plot(prep_time, V_null[prep_idx], '-', color='red', label = 'null', linewidth = 1)
+    bax1.plot(move_time, V_null[move_idx_start:], '-', color='red',  linewidth = 1)
+    bax1.plot(prep_time, V_pot[prep_idx], '-', color='purple', label = 'potent',  linewidth = 1)
+    bax1.plot(move_time, V_pot[move_idx_start:], '-', color='purple',  linewidth = 1)
+
+    if J:
+        # preparatory ticks 
+        bax1.axs[0].set_xticks([0, 400, 800])
+        bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
+
+        # movement ticks
+        bax1.axs[1].set_xticks([1250, 1550, 2170])
+        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+    else:
+        # preparatory ticks
+        bax1.axs[0].set_xticks([0, 400, 800])
+        bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
+
+        # movement ticks 
+        bax1.axs[1].set_xticks([1170, 1470, 2090])
+        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+
+    # sets titles and legend  
+    if PMd: 
+        an_text = "PMd to M1"
+    else: 
+        an_text = "Neurons to Muscles"
+    title_text = f"Monkey {J_text} {an_text} Tuning Ratio"
+    bax1.set_title(title_text)
+    bax1.set_xlabel("Time")
+    bax1.set_ylabel("Variance")
+    bax1.legend(loc = 2)
