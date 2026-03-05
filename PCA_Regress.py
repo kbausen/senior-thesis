@@ -1144,7 +1144,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     ratios will be averaged, as well as the proportions mentioned before. Can also just return the values mentioned. 
 
     Parameters: 
-        tensor_N: This is the inter_PSTH tensor [conditions, muscles, time] for the N matrix in the equation M = WN
+        tensor_N: This is the inter_PSTH tensor [conditions, neurons, time] for the N matrix in the equation M = WN
         tensor_M: this is the inter_PSTH tensor [conditions, muscles, time] for the M matrix in the equation M = WN
         dims: the amount of dimensions matrix N should be reduced to 
         PMd: boolean which tells time shift whether or not to add a 50ms delay (only should be done in the case of muscle data)
@@ -1166,7 +1166,6 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
 
     # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
     cond, neu, fin_tim = tensor_N.shape
-    print(neu)
     if fin_tim < 229:
         J = False
     else: 
@@ -1250,7 +1249,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     else: 
         return var_tuning_means, frob_tuning_means, null_frac_means, pot_frac_means
     
-def sup_tuning (tensor_N, tensor_M, PMd = False, dims = 6):
+def sup_tuning (tensor_N, tensor_M, dims = 6):
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
@@ -1288,11 +1287,23 @@ def sup_tuning (tensor_N, tensor_M, PMd = False, dims = 6):
     fig = plt.figure
     gs = GridSpec(1, 1, figure=fig)
 
-    # telling which dataset it is 
-    if fin_time < 229:
+    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
+    cond, neu, fin_tim = tensor_N.shape
+    if fin_tim < 229:
         J = False
     else: 
-        J = True
+        J = True 
+    
+    if J: 
+        if cond > 30: 
+            PMd = True
+        else: 
+            PMd = False
+    else: 
+        if neu < 150: 
+            PMd = True
+        else: 
+            PMd = False
 
     # time for plotting x axis and indexes needed for correct slicing
     prep_time = np.arange(0, 810, 10)
