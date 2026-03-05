@@ -1206,10 +1206,10 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
         fig, ax = plt.subplots(figsize=(8, 5))
 
         # Null bars (all same color)
-        ax.bar(x - width/2, null_prop, width, label="Null", color="blue")
+        ax.bar(x - width/2, null_prop, width, label="Null", color="indigo")
 
         # Potent bars (all same color)
-        ax.bar(x + width/2, potent_prop, width, label="Potent", color="green")
+        ax.bar(x + width/2, potent_prop, width, label="Potent", color="darkmagenta")
 
         for i in range(len(dims)):
             ax.text(
@@ -1300,10 +1300,10 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
         J_text = "N"
 
     # plotting data
-    bax1.plot(prep_time, V_null[prep_idx], '-', color='red', label = 'null', linewidth = 1)
-    bax1.plot(move_time, V_null[move_idx_start:], '-', color='red',  linewidth = 1)
-    bax1.plot(prep_time, V_pot[prep_idx], '-', color='purple', label = 'potent',  linewidth = 1)
-    bax1.plot(move_time, V_pot[move_idx_start:], '-', color='purple',  linewidth = 1)
+    bax1.plot(prep_time, V_null[prep_idx], '-', color='indigo', label = 'null', linewidth = 1)
+    bax1.plot(move_time, V_null[move_idx_start:], '-', color='indigo',  linewidth = 1)
+    bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
+    bax1.plot(move_time, V_pot[move_idx_start:], '-', color='darkmagenta',  linewidth = 1)
 
     if J:
         # preparatory ticks 
