@@ -1251,6 +1251,25 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
     
 def sup_tuning (tensor_N, tensor_M, dims = 6):
 
+     # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
+    cond, neu, fin_tim = tensor_N.shape
+    if fin_tim < 229:
+        J = False
+    else: 
+        J = True 
+    
+    if J: 
+        if cond > 30: 
+            PMd = True
+        else: 
+            PMd = False
+    else: 
+        if neu < 150: 
+            PMd = True
+        else: 
+            PMd = False
+
+
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
     regress_N, _, _ = time_shift(tensor_N, tensor_M, PMd = PMd, fig4 = True)
@@ -1286,24 +1305,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
     # initializing figure parameters 
     fig = plt.figure
     gs = GridSpec(1, 1, figure=fig)
-
-    # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
-    cond, neu, fin_tim = tensor_N.shape
-    if fin_tim < 229:
-        J = False
-    else: 
-        J = True 
-    
-    if J: 
-        if cond > 30: 
-            PMd = True
-        else: 
-            PMd = False
-    else: 
-        if neu < 150: 
-            PMd = True
-        else: 
-            PMd = False
 
     # time for plotting x axis and indexes needed for correct slicing
     prep_time = np.arange(0, 810, 10)
