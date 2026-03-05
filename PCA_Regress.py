@@ -852,9 +852,9 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
     diff_bin = int((time_bins_pm - time_bins))
     
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
-    N_tilde_move,_,_ = run_PCA(move_N, dimensions, mc = False)
-    M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2), mc = False)
+    N_tilde,_,_ = run_PCA(regress_N, dimensions)
+    N_tilde_move,_,_ = run_PCA(move_N, dimensions)
+    M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2))
 
     # removing preparatory time bins
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
@@ -869,7 +869,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde,_,_ = run_PCA(regress_N, dimensions, mc = False)
+        N_tilde,_,_ = run_PCA(regress_N, dimensions)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
@@ -1101,8 +1101,8 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(regress_N, dims1, mc = False)
-    M_tilde,PCs,_ = run_PCA(regress_M, int(dims1/2), mc = False)
+    N_tilde,_,_ = run_PCA(regress_N, dims1)
+    M_tilde,PCs,_ = run_PCA(regress_M, int(dims1/2))
 
     # isolating the preparatory and movement bins 
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
