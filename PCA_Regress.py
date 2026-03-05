@@ -984,11 +984,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         end_move = end_prep + len(move_time)
 
         if i == 0: 
-            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='slategray', label = 'potent',  linewidth = .5)
-            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='slategray',  linewidth = .5)
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='darkmagenta', label = 'potent',  linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='darkmagenta',  linewidth = .5)
         else: 
-            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='slategray', linewidth = .5)
-            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='slategray',  linewidth = .5)
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='darkmagenta', linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='darkmagenta',  linewidth = .5)
     
     if J:
         # prep ticks
