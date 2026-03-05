@@ -1166,6 +1166,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
 
     # seeing if this is from dataset N or J to ensure correct time splits, can be identified by the amount of time bins per condition
     cond, neu, fin_tim = tensor_N.shape
+    print(neu)
     if fin_tim < 229:
         J = False
     else: 
