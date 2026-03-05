@@ -1174,7 +1174,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
 
     # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
     for dim in dims: 
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N, tensor_M, PMd, dim, cv, rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N, tensor_M, dim, cv, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
@@ -1242,7 +1242,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6):
     cond, _, fin_time = tensor_N.shape
     regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)
     N_tilde, _, _ = run_PCA(regress_N, dims)
-    W_potent, W_null = tuning_setup(tensor_N, tensor_M, PMd, dims, time = True)
+    W_potent, W_null = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
     N_potent = N_tilde @ W_potent
