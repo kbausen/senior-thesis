@@ -726,7 +726,7 @@ def time_shift(tensor_N, tensor_M, PMd = False, scale = True, mean_c = True, ten
     # cutting the N tensor with the times in preparatory period and movement period
     
     N_prep_start = 30
-    N_prep_end = 81 
+    N_prep_end = 81     # 81 because it will get spliced off otherwise
 
 
     if tensor_N.shape[2] < 229:    # dataset N
@@ -1117,7 +1117,7 @@ def tuning_mult (tensor_N1, tensor_M1, dims1, cv = False, rep = 1, plot = False,
     frob_tuning_means = []
     null_frac_means = []
     pot_frac_means = []
-    for dims in range(dims1): 
+    for dims in dims1: 
         var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(tensor_N1, tensor_M1, PMd, dims, cv, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
