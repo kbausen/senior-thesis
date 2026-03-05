@@ -962,8 +962,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='red', label = 'null',  linewidth = .5)
-        bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='red',  linewidth = .5)
+
+        if i == 0:
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='brown', label = 'null',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='brown',  linewidth = .5)
+        else: 
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='brown',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='brown',  linewidth = .5)
     
     # labels for output potent graph
     bax2.text(500, -1.1, "Test Epoch", ha='center')
@@ -977,8 +982,13 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-        bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='purple', label = 'potent',  linewidth = .5)
-        bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='purple',  linewidth = .5)
+
+        if i == 0: 
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='slategray', label = 'potent',  linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='slategray',  linewidth = .5)
+        else: 
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='slategray', linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='slategray',  linewidth = .5)
     
     if J:
         # prep ticks
