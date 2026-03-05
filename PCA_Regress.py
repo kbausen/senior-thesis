@@ -612,7 +612,7 @@ def fig_3_cut_t(tensor, dimensions):
                     # just making sure it is 2D and not 3D
                     current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
 
-                    if (i < dimensions - 1) and J:
+                    if (i < dimensions - 1):
                         #retrieving the projected data
                         dim1 = current_cond[i]
                         dim2 = current_cond[k]
@@ -645,25 +645,23 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     # retrieving dataset specifications 
     J, _ = ident(tensor)
 
-   # using a tensor with only the preparatory and motor activity
+  # retrieving dataset specifications 
+    J, _ = ident(tensor)
+
+    # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
+    
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
 
     # gathering the left vectors
-    _, left_vec, _ = run_PCA(mean_centered, dimensions)
+    proj, _, _ = run_PCA(mean_centered, dimensions)
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
-    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
-
-    # dimension 1 for projection
-    dim1_vector = left_vec[:,d1-1]
-
-    # dimension 2 for projection
-    dim2_vector = left_vec[:, d2-1]
+    scaled_tensor = shape_tensor(proj, conditions, time_bins)
     
     for i in range(conditions):
         current_cond = scaled_tensor[i, :, :]
@@ -671,29 +669,24 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         # just making sure it is 2D and not 3D
         current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
         
-        # projecting the data
-        dim1 = current_cond.T @ dim1_vector
-        dim2 = current_cond.T @ dim2_vector
+        #retrieving the projected data
+        dim1 = current_cond[d1]
+        dim2 = current_cond[d2]
 
-        if J:
-            plt.plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
-            plt.plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-            plt.plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-            plt.plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
+        plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
+        plt.plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
+        plt.plot(dim1[52:117], dim2[52:117], '-', color='green', label='Movement')
+        plt.plot(dim1[117], dim2[117], 'o', color='red', label='Movement')
 
-            plt.xlabel(f"Dimension {d1}")
-            plt.label(f"Dimension {d2}")
-            plt.legend(loc = 3)
+    plt.xlabel(f"Dimension {d1}")
+    plt.label(f"Dimension {d2}")
+    if J:
+        plt.legend(loc = 3)
+        plt.title("Monkey J Neural Projection")
 
-        else: 
-            plt.plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
-            plt.plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
-            plt.plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
-            plt.plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
-
-            plt.xlabel(f"Dimension {d1}")
-            plt.ylabel(f"Dimension {d2}")
-            plt.legend(loc = 2)
+    else:
+        plt.legend(loc = 2)
+        plt.title("Monkey N Neural Projection")
 
     plt.tight_layout()
     plt.show()
