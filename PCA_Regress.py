@@ -652,7 +652,6 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
     
-
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
@@ -662,6 +661,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, time_bins)
+    print(scaled_tensor.shape)
     
     for i in range(conditions):
         current_cond = scaled_tensor[i, :, :]
@@ -670,8 +670,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
         
         #retrieving the projected data
-        dim1 = current_cond[d1]
-        dim2 = current_cond[d2]
+        dim1 = current_cond[d1,:]
+        dim2 = current_cond[d2,:]
 
         plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
         plt.plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
@@ -679,7 +679,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         plt.plot(dim1[117], dim2[117], 'o', color='red', label='Movement')
 
     plt.xlabel(f"Dimension {d1}")
-    plt.label(f"Dimension {d2}")
+    plt.ylabel(f"Dimension {d2}")
     if J:
         plt.legend(loc = 3)
         plt.title("Monkey J Neural Projection")
