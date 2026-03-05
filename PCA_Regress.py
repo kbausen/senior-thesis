@@ -964,11 +964,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         end_move = end_prep + len(move_time)
 
         if i == 0:
-            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='brown', label = 'null',  linewidth = .5)
-            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='brown',  linewidth = .5)
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='slateblue', label = 'null',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='slateblue',  linewidth = .5)
         else: 
-            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='brown',  linewidth = .5)
-            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='brown',  linewidth = .5)
+            bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='slateblue',  linewidth = .5)
+            bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='slateblue',  linewidth = .5)
     
     # labels for output potent graph
     bax2.text(500, -1.1, "Test Epoch", ha='center')
@@ -1015,7 +1015,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         bax2.axs[1].set_xticks([1170, 1470, 2090])
         bax2.axs[1].set_xticklabels(['-300', 'move', '600'])
     
-    bax1.legend(loc = 2)
+    # bax1.legend(loc = 2)
     
 def tuning_rat (W_potent, W_null, neu_move, neu_prep):
     """
