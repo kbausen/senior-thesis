@@ -584,34 +584,28 @@ def fig_3_cut_t(tensor, dimensions):
     # using a tensor with only the preparatory and motor activity
     cut_tensor = time_cut(tensor)
     conditions, _, time_bins = cut_tensor.shape
+    print(time_bins)
 
     # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
     matrix = scaling(cut_tensor)
     mean_centered = matrix - np.mean(matrix, axis = 0)
 
     # gathering the left vectors
-    _, left_vec, _ = run_PCA(mean_centered, dimensions)
+    proj, _, _ = run_PCA(mean_centered, dimensions)
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
-    scaled_tensor = shape_tensor(mean_centered, conditions, time_bins)
+    scaled_tensor = shape_tensor(proj, conditions, time_bins)
 
     # starting the figures
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
     axs = axs.flatten()
     c = 0
-    print(left_vec.shape)
     
     for i in range(dimensions - 1):
-
-        # dimension 1 for projection
-        dim1_vector = left_vec[:,i]
-    
+            
         for k in range(dimensions): 
-
-            if k != i: 
-                # dimension 2 for projection
-                dim2_vector = left_vec[:, k]
-               
+           
+            if k != i:          
                 for j in range(conditions):
                     current_cond = scaled_tensor[j, :, :]
 
@@ -619,38 +613,37 @@ def fig_3_cut_t(tensor, dimensions):
                     current_cond = current_cond.reshape(scaled_tensor.shape[1], scaled_tensor.shape[2])
 
                     if i < dimensions - 1 & J:
-                        #projecting the data
-                        dim1 = current_cond.T @ dim1_vector
-                        dim2 = current_cond.T @ dim2_vector
+                        #retrieving the projected data
+                        dim1 = current_cond[i]
+                        dim2 = current_cond[k]
 
                         # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
                         # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[c].plot(dim1[30:81], dim2[30:81], '-', color='blue', label='Preparatory')
-                        axs[c].plot(dim1[120], dim2[120], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[150:215], dim2[150:215], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[215], dim2[215], 'o', color='red', label='Movement')
+                        axs[k].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
+                        axs[k].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
+                        axs[k].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
+                        axs[k].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
                         # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
 
-                        axs[c].set_xlabel(f"Dimension {i + 1}")
-                        axs[c].set_ylabel(f"Dimension {k + 1}")
+                        axs[k].set_xlabel(f"Dimension {i + 1}")
+                        axs[k].set_ylabel(f"Dimension {k + 1}")
 
                     elif i < dimensions - 1: 
-                        # projecting the data
-                        dim1 = current_cond.T @ dim1_vector
-                        dim2 = current_cond.T @ dim2_vector
+                        #retrieving the projected data
+                        dim1 = current_cond[i]
+                        dim2 = current_cond[k]
 
-                        axs[c].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
-                        axs[c].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
+                        axs[k].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
+                        axs[k].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
+                        axs[k].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
+                        axs[k].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
 
-                        axs[c].set_xlabel(f"Dimension {i + 1}")
-                        axs[c].set_ylabel(f"Dimension {k + 1}")
+                        axs[k].set_xlabel(f"Dimension {i + 1}")
+                        axs[k].set_ylabel(f"Dimension {k + 1}")
 
-                c +=1
+                # c +=1
 
              
-
     plt.tight_layout()
     plt.show()
 
@@ -826,9 +819,9 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
 
     return N_cut_mc, N_move_mc, M_move_mc
 
-def time_cut (tensor, go_cue = True):
+def time_cut (tensor):
     """
-    Will splice out the times for preparatory activity and motor activity, used for figure 3. 
+    Will splice out the times for preparatory activity and motor activity, used for figure 3. Includes the goCue 
 
     Parameters: 
         tensor: inter_PSTH tensor [conditions, neurons, time bins]
@@ -837,10 +830,11 @@ def time_cut (tensor, go_cue = True):
     Returns: 
         cut_tensor: inter_PSTH tensor with only time bins during preparatory activity, go cue, and movement  
     """
-    if go_cue:
-        N_idx = np.r_[30:80, 120, 150:216]
-    else:
-        N_idx = np.r_[30:80, 150:216]
+    J, _ = ident(tensor)
+    if J:
+        N_idx = np.r_[30:81, 120, 150:216]
+    else: 
+        N_idx = np.r_[30:81, 118, 142:208]
     return tensor[:,:, N_idx]
 
 def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = False):
