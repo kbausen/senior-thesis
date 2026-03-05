@@ -1177,10 +1177,10 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
         else: 
             PMd = False
     else: 
-        if neu > 150: 
-            PMd = False
-        else: 
+        if neu < 150: 
             PMd = True
+        else: 
+            PMd = False
 
     # initializing arrays to hold the average values for each set of dimensions 
     var_tuning_means = []
