@@ -624,7 +624,7 @@ def fig_3_cut_t(tensor, dimensions):
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
                         axs[c].set_ylabel(f"Dimension {k + 1}")
-
+                print(c)
                 c +=1
 
              
