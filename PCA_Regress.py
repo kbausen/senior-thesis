@@ -638,9 +638,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         d1: the first PC selected for projection (the range is 1 through dimensions)
         d2: the second PC selected for projection (the range is 1 through dimensions)
     """
-    # retrieving dataset specifications 
-    J, _ = ident(tensor)
-
+    d1 -= 1
+    d2 -= 1
   # retrieving dataset specifications 
     J, _ = ident(tensor)
 
@@ -675,8 +674,8 @@ def fig_3_spec(tensor, dimensions, d1, d2):
             plt.plot(dim1[52:117], dim2[52:117], '-', color='green')
             plt.plot(dim1[117], dim2[117], 'o', color='red')
 
-    plt.xlabel(f"Dimension {d1}")
-    plt.ylabel(f"Dimension {d2}")
+    plt.xlabel(f"Dimension {d1 + 1}")
+    plt.ylabel(f"Dimension {d2 + 1}")
     if J:
         plt.legend(loc = 3)
         plt.title("Monkey J Neural Projection")
