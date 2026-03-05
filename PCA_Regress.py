@@ -617,29 +617,13 @@ def fig_3_cut_t(tensor, dimensions):
                         dim1 = current_cond[i]
                         dim2 = current_cond[k]
 
-                        # axs[c].plot(dim1[0], dim2[0], 'o', color='gray', markersize=8, label='Start')
-                        # axs[c].plot(dim1[1:30], dim2[1:30], '-', color='orange', label='Other')
-                        axs[k].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
-                        axs[k].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
-                        axs[k].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
-                        axs[k].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
-                        # axs[c].plot(dim1[215:236], dim2[215:236], '-', color='orange', label='Other')
+                        axs[c].plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
+                        axs[c].plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
+                        axs[c].plot(dim1[52:118], dim2[52:118], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[118], dim2[118], 'o', color='red', label='Movement')
 
-                        axs[k].set_xlabel(f"Dimension {i + 1}")
-                        axs[k].set_ylabel(f"Dimension {k + 1}")
-
-                    elif i < dimensions - 1: 
-                        #retrieving the projected data
-                        dim1 = current_cond[i]
-                        dim2 = current_cond[k]
-
-                        axs[k].plot(dim1[:50], dim2[:50], '-', color='blue', label='Preparatory')
-                        axs[k].plot(dim1[50], dim2[50], 'o', color='gray', label='Go')
-                        axs[k].plot(dim1[51:116], dim2[51:116], '-', color='green', label='Movement')
-                        axs[k].plot(dim1[116], dim2[116], 'o', color='red', label='Movement')
-
-                        axs[k].set_xlabel(f"Dimension {i + 1}")
-                        axs[k].set_ylabel(f"Dimension {k + 1}")
+                        axs[c].set_xlabel(f"Dimension {i + 1}")
+                        axs[c].set_ylabel(f"Dimension {k + 1}")
 
                 # c +=1
 
