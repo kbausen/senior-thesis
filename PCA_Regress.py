@@ -619,8 +619,8 @@ def fig_3_cut_t(tensor, dimensions):
 
                         axs[c].plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
                         axs[c].plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
-                        axs[c].plot(dim1[52:118], dim2[52:118], '-', color='green', label='Movement')
-                        axs[c].plot(dim1[118], dim2[118], 'o', color='red', label='Movement')
+                        axs[c].plot(dim1[52:117], dim2[52:117], '-', color='green', label='Movement')
+                        axs[c].plot(dim1[117], dim2[117], 'o', color='red', label='Movement')
 
                         axs[c].set_xlabel(f"Dimension {i + 1}")
                         axs[c].set_ylabel(f"Dimension {k + 1}")
