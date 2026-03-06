@@ -479,8 +479,8 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     np.random.shuffle(all_idx)
 
     # calculate the sizes of each set 
-    size_10_percent = int(np.round(conds * 0.1))    # 10% for lambda 
-    size_20_percent = int(np.round(conds * 0.2))    # 20% for testing
+    size_10_percent = int((conds * 0.1))    # 10% for lambda 
+    size_20_percent = int((conds * 0.2))    # 20% for testing
 
     # splitting the shuffled index array 
     split_points = [size_10_percent, size_10_percent + size_20_percent]
@@ -512,13 +512,14 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     mus_train_mat = shape_matrix(mus_train_tens)      
 
     # Calling best lambda
-    neu_train_cov = neu_train_mat.T @ neu_train_mat
-    I = np.identity(N_dim)
-
     if cv:
         lam, _, _, _, _ = best_lam(neu_lam_mat, mus_lam_mat, num_bins)
     else: 
         lam, _ = simple_lam(neu_lam_mat, mus_lam_mat)
+
+    # setting up for regression
+    neu_train_cov = neu_train_mat.T @ neu_train_mat
+    I = np.identity(N_dim)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
     W = np.linalg.solve(neu_train_cov + lam * I, neu_train_mat.T @ mus_train_mat)
@@ -774,7 +775,7 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
         N_move_scale = scaling(N_move)
         M_move_scale = scaling(M_move)
 
-    if mean_c & scale:
+    if mean_c and scale:
         N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
         N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
         M_move_mc = M_move_scale - np.mean(M_move_scale, axis = 0)
@@ -848,7 +849,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
     # how many time bins are included in the preparatory and movement period 
     time_bins_pm = int(time_ct_neu / cond)
 
-    # difference in bins 
+    # difference in bins = prep bins 
     diff_bin = int((time_bins_pm - time_bins))
     
     # retrieving data projected onto the first N_dim and M_dim PCs
@@ -880,7 +881,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
 
     Parameters: 
         W: This is W tilde, the low rank approximation of the weights matrix
-        N_tilde: this is the low rank approximation of matrix N
+        N_tilde: this is the low rank approximation of matrix N (includes prep and movement)
         cond: the number of conditions used
         basis: which of the three potent/null dimensions will be plotted 
         J: tells if this is from monkey J or N
@@ -897,7 +898,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     W_potent = U[:,:rank]
     W_null = U[:,rank:]
 
-    
     # low rank neural data projected onto null and potent space of weights and scaling them
     N_potent =  N_tilde @ W_potent
     N_null = N_tilde @ W_null
@@ -1118,7 +1118,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
     # how many time bins are included in the preparatory and movement period 
     time_bins_pm = int(time_ct_neu / cond)
 
-    # difference in bins 
+    # difference in bins = just prep bins 
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
