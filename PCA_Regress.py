@@ -544,8 +544,12 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W 
     MSE_test = mse_fun(mus_test_mat, M_test_hat)
     RMSE_test = np.sqrt(MSE_test)
+
+    M_hat = N_tilde @ W
+    MSE_all = mse_fun(M_tilde, M_hat)
+    RMSE_all = np.sqrt(MSE_all)
     
-    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
+    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_all, RMSE_all
     
 def scaling (tensor):
     """
