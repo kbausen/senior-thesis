@@ -1035,16 +1035,16 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     """
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
-    # N_nm_tensor = shape_tensor(N_null_move, cond)
-    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
-    # N_null_move = shape_matrix(N_nm_tensor)
+    N_nm_tensor = shape_tensor(N_null_move, cond)
+    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
+    N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
-    # N_pm_tensor = shape_tensor(N_pot_move, cond)
-    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
-    # N_pot_move = shape_matrix(N_pm_tensor)
+    N_pm_tensor = shape_tensor(N_pot_move, cond)
+    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
+    N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
     
@@ -1303,14 +1303,15 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     prep_time = np.arange(0, 810, 10)
     prep_idx = np.arange(81)
     move_idx_start = len(prep_idx)
+    max = np.max(np.abs(np.concatenate([V_null, V_pot])))
         
     # different limits on the axes depending on which dataset was given
     if J: 
-        bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, 2),), hspace=.05, subplot_spec=gs[0]) 
+        bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
         move_time = np.arange(1250, 2160, 10)
         J_text = "J"
     else: 
-        bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, 2),), hspace=.05, subplot_spec=gs[0]) 
+        bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
         move_time = np.arange(1170, 2080, 10)
         J_text = "N"
 
