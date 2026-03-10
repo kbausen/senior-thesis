@@ -109,7 +109,7 @@ def svd (matrix, plot = False):
     C_2 = np.cov(matrix.T)
 
     # Running SVD on the covariance matrix
-    U,S_,V_T = np.linalg.svd(C_2)
+    U,S_,V_T = np.linalg.svd(matrix)
     s_tot = np.sum(S_)
     frac = S_/s_tot
     
