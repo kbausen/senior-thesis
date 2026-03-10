@@ -212,7 +212,7 @@ def run_PCA (matrix, rank):
     
     # runs PCA 
     U, S_, V_T = svd(matrix)
-    V_T = V_T.transpose
+    V_T = V_T.T
 
     # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ V_T[:,:rank]
