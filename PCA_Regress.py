@@ -212,16 +212,17 @@ def run_PCA (matrix, rank):
     
     # runs PCA 
     U, S_, V_T = svd(matrix)
+    V_T = V_T.transpose
 
     # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = matrix @ U[:,:rank]
+    proj = matrix @ V_T[:,:rank]
        
     # takes the dot product of proj_set and V_T to get the rank k approximation, 
     # print(f"proj shape is {proj_set.shape}")
     # print(f"V_T shape is {V_T.shape}")
-    proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
+    # proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
     
-    return proj, U[:, :rank], proj2
+    return proj, V_T[:, :rank]
 
     
 def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
@@ -283,7 +284,7 @@ def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstr
     ax.grid(True)
    
 def projections(matrix, dimensions):
-    _, left_vec, _ = run_PCA(matrix, dimensions)
+    _, left_vec = run_PCA(matrix, dimensions)
     
     # matrix_cent = matrix - np.mean(matrix, axis=0)
     dim1 = matrix @ left_vec[:, 0]
@@ -315,7 +316,7 @@ def projections(matrix, dimensions):
    
 
 def neu_recon (matrix, dimensions):
-    _,left_vec,_ = run_PCA(matrix, dimensions)
+    _,left_vec = run_PCA(matrix, dimensions)
     mean_sub = matrix - np.mean(matrix, axis = 0)
 
     recon = mean_sub @ left_vec @ left_vec.T
@@ -596,7 +597,7 @@ def fig_3_cut_t(tensor, dimensions):
     mean_centered = matrix - np.mean(matrix, axis = 0)
 
     # gathering the left vectors
-    proj, _, _ = run_PCA(mean_centered, dimensions)
+    proj, _ = run_PCA(mean_centered, dimensions)
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, time_bins)
@@ -657,7 +658,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     mean_centered = matrix - np.mean(matrix, axis = 0)
 
     # gathering the left vectors
-    proj, _, _ = run_PCA(mean_centered, dimensions)
+    proj, _ = run_PCA(mean_centered, dimensions)
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, time_bins)
@@ -857,9 +858,9 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
     diff_bin = int((time_bins_pm - time_bins))
     
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(regress_N, dimensions)
-    N_tilde_move,_,_ = run_PCA(move_N, dimensions)
-    M_tilde,PCs,_ = run_PCA(regress_M, int(dimensions/2))
+    N_tilde,_ = run_PCA(regress_N, dimensions)
+    N_tilde_move,_ = run_PCA(move_N, dimensions)
+    M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
 
     # removing preparatory time bins
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
@@ -874,7 +875,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde,_,_ = run_PCA(regress_N, dimensions)
+        N_tilde,_ = run_PCA(regress_N, dimensions)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
@@ -1126,8 +1127,8 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_,_ = run_PCA(regress_N, dims1)
-    M_tilde,PCs,_ = run_PCA(regress_M, int(dims1/2))
+    N_tilde,_ = run_PCA(regress_N, dims1)
+    M_tilde,PCs = run_PCA(regress_M, int(dims1/2))
 
     # isolating the preparatory and movement bins 
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
@@ -1267,7 +1268,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
     regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)
-    N_tilde, _, _ = run_PCA(regress_N, dims)
+    N_tilde, _ = run_PCA(regress_N, dims)
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
