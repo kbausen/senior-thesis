@@ -9,6 +9,7 @@ from scipy.stats import multivariate_normal, halfnorm
 import random
 import h5py
 from sklearn.linear_model import RidgeCV
+from sklearn.metrics import mean_squared_error
 from scipy.io import loadmat
 import pickle
 from brokenaxes import brokenaxes
@@ -106,12 +107,12 @@ def svd (matrix, plot = False):
         V_T: the right singular vectors 
     """
     # Computing the covariance 
-    C_2 = np.cov(matrix.T)
+    # C_2 = np.cov(matrix.T)
 
     # Running SVD on the covariance matrix
-    U,S_,V_T = np.linalg.svd(matrix)
+    U,S_,V_T = np.linalg.svd(matrix, full_matrices=False)
     s_tot = np.sum(S_)
-    frac = S_/s_tot
+    frac = S_**2 / np.sum(S_**2)
     
 
     # Plots the fraction of variance by PC
@@ -359,7 +360,11 @@ def regress (train_N, train_M, lam):
     M_hat = train_N @ W_hat
     
     # compute R-squared values
-    R_squared = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
+    # per dimension
+    R2_dims = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
+
+    # overall
+    R2_total = 1 - np.sum((train_M - M_hat)**2) / np.sum((train_M - train_M.mean(axis=0))**2)
 
     # MSE
     MSE_lam = mse_fun(train_M, M_hat)
@@ -388,34 +393,61 @@ def best_lam(neu_lam, mus_lam, time_bins):
 
     """
 
-    # Define a range of lambda values to test
+    conds = int(neu_lam.shape[0] / time_bins)
+
+    neu_tensor = shape_tensor(neu_lam, conds)
+    mus_tensor = shape_tensor(mus_lam, conds)
+
+    K = 5
+
+    cond_idx = np.arange(conds)
+    np.random.shuffle(cond_idx)
+
+    folds = np.array_split(cond_idx, K)
+
+    # Define a range of lambda values to test and initialize arrays
     lambdas = np.logspace(-2, 3, 20)
-    
-    # Initialize variables to store the best lambda and its corresponding MSE
-    best_lambda = None
-    min_rmse = float('inf')
-    min_mse = float('inf')
     mse_vals = []
     rmse_vals = []
 
-    # Perform cross-validation
     for lam in lambdas:
-        # Fit a ridge regression model with the current lambda
-        W_hat, _, _, RMSE_lam, MSE_lam = regress(neu_lam, mus_lam, lam)
 
-        # Predict on the test sample
-        mse_vals.append(MSE_lam)
-        rmse_vals.append(RMSE_lam)
+        fold_mse = []
 
-        # Update best lambda if current RMSE is lower than previous minimum
-        if RMSE_lam < min_rmse and lam != None:
-            min_rmse = RMSE_lam
-            min_mse = MSE_lam
-            best_lambda = lam
+        for k in range(K):
 
-    print(">>> best_lam returning:", best_lambda)
-    # Return the best lambda and its corresponding MSE         
-    return best_lambda, min_mse, min_rmse, mse_vals, rmse_vals
+            val_idx = folds[k]
+            train_idx = np.hstack([folds[i] for i in range(K) if i != k])
+
+            neu_train = shape_matrix(neu_tensor[train_idx])
+            mus_train = shape_matrix(mus_tensor[train_idx])
+
+            neu_val = shape_matrix(neu_tensor[val_idx])
+            mus_val = shape_matrix(mus_tensor[val_idx])
+
+            W_hat, _, _, _, _ = regress(neu_train, mus_train, lam)
+
+            mus_pred = neu_val @ W_hat
+
+            mse = np.mean((mus_val - mus_pred)**2)
+
+            fold_mse.append(mse)
+
+        mean_mse = np.mean(fold_mse)
+
+        mse_vals.append(mean_mse)
+        rmse_vals.append(np.sqrt(mean_mse))
+
+        #Identifying the best lambda 
+        best_idx = np.argmin(mse_vals)
+
+        best_lambda = lambdas[best_idx]
+        min_mse = mse_vals[best_idx]
+        min_rmse = rmse_vals[best_idx]
+
+        print(">>> best_lam returning:", best_lambda)
+        # Return the best lambda and its corresponding MSE         
+        return best_lambda, min_mse, min_rmse, mse_vals, rmse_vals
 
 def simple_lam(N_train, M_train):
     """
@@ -527,30 +559,35 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
 
     # calculating the M_hat by multiplying neu_test_mat and W from above
     M_test_hat = neu_test_mat @ W
-    R_squared = []
+    M_hat = N_tilde @ W
 
     # calculating R squared for each column of M_tilde
-    for i in range (W.shape[1]):
-        SST = mus_test_mat[:,i] - np.mean(mus_test_mat[:,i])
-        SST = SST @ SST.T
-        SSR = M_test_hat[:,i] - np.mean(mus_test_mat[:,i])
-        SSR = SSR @ SSR.T
-        R_sq = 1 - (SSR / SST)
-        R_squared.append(R_sq)
-    R_squared = np.array(R_squared)
+    # per dimension
+    R2_dims = 1 - np.var(M_tilde - M_hat, axis=0) / np.var(M_tilde, axis=0)
+
+    # overall
+    R2_total = 1 - np.sum((M_tilde - M_hat)**2) / np.sum((M_tilde - M_tilde.mean(axis=0))**2)
+    # for i in range (W.shape[1]):
+    #     SST = mus_test_mat[:,i] - np.mean(mus_test_mat[:,i])
+    #     SST = SST @ SST.T
+    #     SSR = M_test_hat[:,i] - np.mean(mus_test_mat[:,i])
+    #     SSR = SSR @ SSR.T
+    #     R_sq = 1 - (SSR / SST)
+    #     R_squared.append(R_sq)
+    # R_squared = np.array(R_squared)
 
     # projecting M_hat onto the PCs of M for a reconstruction 
-    M_hat_recon = M_test_hat @ PCs.T 
+    # M_hat_recon = M_test_hat @ PCs.T 
 
     # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W 
     MSE_test = mse_fun(mus_test_mat, M_test_hat)
     RMSE_test = np.sqrt(MSE_test)
 
-    M_hat = N_tilde @ W
+    
     MSE_all = mse_fun(M_tilde, M_hat)
     RMSE_all = np.sqrt(MSE_all)
     
-    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_all, RMSE_all
+    return W, mus_test_mat, M_test_hat, R2_total, R2_dims, MSE_all, RMSE_all
     
 def scaling (tensor):
     """
@@ -816,7 +853,7 @@ def time_cut (tensor):
         N_idx = np.r_[30:81, 118, 142:208]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = False):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True):
     """
     Performs regression needed for figure 4. 
 
@@ -859,7 +896,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
     
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,_ = run_PCA(regress_N, dimensions)
-    N_tilde_move,_ = run_PCA(move_N, dimensions)
     M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
 
     # removing preparatory time bins
@@ -875,7 +911,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Fal
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde,_ = run_PCA(regress_N, dimensions)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
 
