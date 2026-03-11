@@ -911,7 +911,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde, _, _ = run_PCA(regress_N, dimensions)
+        N_tilde, _ = run_PCA(regress_N, dimensions)
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
