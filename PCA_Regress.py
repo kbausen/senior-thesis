@@ -906,13 +906,13 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
-    W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
+    W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
                                                                                          mc = False, cv = cv)
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
-    return W, mus_test_mat, M_test_hat, M_hat_recon, R_squared, MSE_test, RMSE_test
+    return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
 
 def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
