@@ -372,7 +372,7 @@ def regress (train_N, train_M, lam):
     # RMSE 
     RMSE_lam = np.sqrt(MSE_lam)
 
-    return W_hat, M_hat, R_squared, RMSE_lam, MSE_lam
+    return W_hat, M_hat, R2_total, RMSE_lam, MSE_lam
 
 def best_lam(neu_lam, mus_lam, time_bins):
     """
