@@ -937,8 +937,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
     rank = int(dimensions/2)
 
     # potent and null space basis of W 
-    W_potent = U[:,:rank] @ S_val[:rank, :rank]
-    W_null = U[:,rank:] @ S_val[:rank, :rank]
+    W_potent = U[:,:rank] 
+    W_null = U[:,rank:]
 
     # low rank neural data projected onto null and potent space of weights and scaling them
     N_potent =  N_tilde @ W_potent 
@@ -1189,8 +1189,8 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
         rank = int(dims1/2)
 
         # potent and null space basis of W 
-        W_potent = U[:,:rank] @ S_val[:rank, :rank]
-        W_null = U[:,rank:] @ S_val[:rank, :rank]
+        W_potent = U[:,:rank] 
+        W_null = U[:,rank:]
 
         if time: 
             gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
