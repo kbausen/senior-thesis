@@ -215,6 +215,8 @@ def run_PCA (matrix, rank):
     U, S_, V_T = svd(matrix)
     V_T = V_T.T 
     S_ = np.diag(S_, rank)
+    print(S_.shape)
+    print(V_T[:, :rank].shape)
     SV = V_T[:,:rank] @ S_
 
 
