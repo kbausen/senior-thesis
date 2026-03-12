@@ -214,7 +214,8 @@ def run_PCA (matrix, rank):
     # runs PCA 
     U, S_, V_T = svd(matrix)
     V_T = V_T.T 
-    SV = V_T[:,:rank] @ S_[:rank, :rank]  
+    S_ = np.diag(S_, rank)
+    SV = V_T[:,:rank] @ S_
 
 
     # project the mean centered data onto these PCs to produce a rank k approximation
