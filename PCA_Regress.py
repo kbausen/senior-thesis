@@ -933,15 +933,16 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
 
     # running SVD on W to be able to get the null space of the matrix 
     U, S_val, V = np.linalg.svd(W)
+    S_val = np.diag(S_val)
     rank = int(dimensions/2)
 
     # potent and null space basis of W 
-    W_potent = U[:,:rank]
-    W_null = U[:,rank:]
+    W_potent = U[:,:rank] @ S_val[:rank, :rank]
+    W_null = U[:,rank:] @ S_val[:rank, :rank]
 
     # low rank neural data projected onto null and potent space of weights and scaling them
-    N_potent =  N_tilde @ W_potent
-    N_null = N_tilde @ W_null
+    N_potent =  N_tilde @ W_potent 
+    N_null = N_tilde @ W_null 
     max = np.max(np.abs(np.concatenate([N_potent, N_null])))
     N_potent /= max
     N_null /=  max
@@ -1184,11 +1185,12 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
         # computing W 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
         U, S_val, V = np.linalg.svd(W1)
+        S_val = np.diag(S_val)
         rank = int(dims1/2)
 
         # potent and null space basis of W 
-        W_potent = U[:,:rank]
-        W_null = U[:,rank:]
+        W_potent = U[:,:rank] @ S_val[:rank, :rank]
+        W_null = U[:,rank:] @ S_val[:rank, :rank]
 
         if time: 
             gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
