@@ -210,20 +210,19 @@ def run_PCA (matrix, rank):
         proj: the projected rank k approximation of the dataset
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
-    
+    C_2 = matrix.T @ matrix
     # runs PCA 
-    U, S_, V_T = svd(matrix)
-    V_T = V_T.T 
+    U, S_, V_T = svd(C_2)
 
     # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = matrix @ V_T[:, :rank]
+    proj = matrix @ U[:, :rank]
        
     # takes the dot product of proj_set and V_T to get the rank k approximation, 
     # print(f"proj shape is {proj_set.shape}")
     # print(f"V_T shape is {V_T.shape}")
     # proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
     
-    return proj, V_T[:, :rank]
+    return proj, U[:, :rank]
 
     
 def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
@@ -354,7 +353,7 @@ def regress (train_N, train_M, lam):
     I = np.eye(C.shape[0])
 
     # compute the weights matrix
-    W_hat = np.linalg.solve(C + lam * I, train_N.T @ train_M)
+    W_hat = np.linalg.solve(C + (lam * I), train_N.T @ train_M)
     
     # compute the predicted values
     M_hat = train_N @ W_hat
@@ -555,7 +554,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     I = np.identity(N_dim)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
-    W = np.linalg.solve(neu_train_cov + lam * I, neu_train_mat.T @ mus_train_mat)
+    W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
 
     # calculating the M_hat by multiplying neu_test_mat and W from above
     M_test_hat = neu_test_mat @ W
