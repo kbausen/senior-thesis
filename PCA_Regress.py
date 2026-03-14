@@ -211,9 +211,9 @@ def run_PCA (matrix, rank):
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
     C_2 = matrix.T @ matrix
-    C_2 = C_2 
+    # C_2 = C_2 
     # runs PCA 
-    U, S_, V_T = svd(C_2)
+    U, S_, V_T = svd(matrix)
 
     # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ U[:, :rank]
