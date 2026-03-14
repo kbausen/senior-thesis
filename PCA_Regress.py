@@ -351,6 +351,7 @@ def regress (train_N, train_M, lam):
     
     # compute the covariance matrix
     C = train_N.T @ train_N
+    print(C.shape)
     I = np.eye(C.shape[0])
 
     # compute the weights matrix
