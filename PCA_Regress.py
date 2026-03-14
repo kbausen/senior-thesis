@@ -908,6 +908,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     shape_b = move_N.shape
     print(f"Are A and B shapes equal? {shape_a == shape_b}")
     if shape_a != shape_b:
+        print(f"muscle movement matrix{regress_M.shape}")
         print(f"cut matrix {shape_a}")
         print(f"what it should be matrix {shape_b}")
 
