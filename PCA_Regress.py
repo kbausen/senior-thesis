@@ -214,16 +214,17 @@ def run_PCA (matrix, rank):
     # C_2 = C_2 
     # runs PCA 
     U, S_, V_T = svd(matrix)
+    V = V_T.T
 
     # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = matrix @ U[:, :rank]
+    proj = matrix @ V[:, :rank]
        
     # takes the dot product of proj_set and V_T to get the rank k approximation, 
     # print(f"proj shape is {proj_set.shape}")
     # print(f"V_T shape is {V_T.shape}")
     # proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
     
-    return proj, U[:, :rank]
+    return proj, V[:, :rank]
 
     
 def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
