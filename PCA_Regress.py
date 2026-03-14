@@ -1185,9 +1185,11 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = Fal
     for i in range(rep + 1): 
         # computing W 
         W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
-        U, S_val, V = np.linalg.svd(W1)
+        U, S_val, V = np.linalg.svd(W1, full_matrices = True)
         S_val = np.diag(S_val)
         rank = int(dims1/2)
+        print(f"U matrix shape {U.shape}")
+        print(f"V matrix shape {V.shape}")
 
         # potent and null space basis of W 
         W_potent = U[:,:rank] 
