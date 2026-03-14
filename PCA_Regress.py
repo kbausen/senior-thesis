@@ -211,7 +211,7 @@ def run_PCA (matrix, rank):
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
     C_2 = matrix.T @ matrix
-    C_2 = C_2 / (matrix.shape[0] - 1)
+    C_2 = C_2 
     # runs PCA 
     U, S_, V_T = svd(C_2)
 
