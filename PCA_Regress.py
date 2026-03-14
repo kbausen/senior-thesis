@@ -904,6 +904,13 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     # reshape for ridge
     N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
+    shape_a = N_tilde_reg.shape
+    shape_b = move_N.shape
+    print(f"Are A and B shapes equal? {shape_a == shape_b}")
+    if shape_a != shape_b:
+        print(f"cut matrix {shape_a}")
+        print(f"what it should be matrix {shape_b}")
+
     # running through ridge regression 
     W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(N_tilde_reg, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
                                                                                          mc = False, cv = cv)
