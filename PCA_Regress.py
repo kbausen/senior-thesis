@@ -1125,7 +1125,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     print("Tuning with frob: ", frob_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
-def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = False, rep = 0, time = False):
+def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = False):
     """
     Takes in two tensors and processes them to get the tuning ratio. 
 
