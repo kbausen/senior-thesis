@@ -1163,15 +1163,16 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(regress_N, dims1)
+    N_tilde,N_PCs = run_PCA(N_move, dims1)
     M_tilde,PCs = run_PCA(regress_M, int(dims1/2))
 
     # multiplying to get it all on the muscle basis 
+    N_ppm = regress_N @ N_PCs
 
     # isolating the preparatory and movement bins 
-    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-    N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
-    N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
+    # N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+    N_tilde_tens_move = N_ppm[:,:,diff_bin:]
+    N_tilde_tens_prep = N_ppm[:,:,:diff_bin]
 
     # reshape into matrices for tuning computation
     N_tilde_move = shape_matrix(N_tilde_tens_move)
@@ -1308,8 +1309,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
-    regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)
-    N_tilde, _ = run_PCA(regress_N, dims)
+    regress_N, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)
+    N_move_k, PCs = run_PCA(N_move, dims)
+    N_tilde = regress_N @ PCs
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
