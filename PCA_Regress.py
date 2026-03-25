@@ -211,20 +211,14 @@ def run_PCA (matrix, rank):
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
     C_2 = matrix.T @ matrix
-    # C_2 = C_2 
+    
     # runs PCA 
-    U, S_, V_T = svd(matrix)
-    V = V_T.T
+    U, S_, V_T = svd(C_2)
 
     # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = matrix @ V[:, :rank]
-       
-    # takes the dot product of proj_set and V_T to get the rank k approximation, 
-    # print(f"proj shape is {proj_set.shape}")
-    # print(f"V_T shape is {V_T.shape}")
-    # proj2 = (U[:, :rank] * S_[:rank]).T @ V_T
+    proj = matrix @ U[:, :rank]
     
-    return proj, V[:, :rank]
+    return proj, U[:, :rank]
 
     
 def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
@@ -352,7 +346,7 @@ def regress (train_N, train_M, lam):
     
     # compute the covariance matrix
     C = train_N.T @ train_N
-    print(C.shape)
+    
     I = np.eye(C.shape[0])
 
     # compute the weights matrix
@@ -395,16 +389,15 @@ def best_lam(neu_lam, mus_lam, time_bins):
 
     """
 
+    # shape data into a tensor 
     conds = int(neu_lam.shape[0] / time_bins)
-
     neu_tensor = shape_tensor(neu_lam, conds)
     mus_tensor = shape_tensor(mus_lam, conds)
 
+    # set up folds and random conditions 
     K = 5
-
     cond_idx = np.arange(conds)
     np.random.shuffle(cond_idx)
-
     folds = np.array_split(cond_idx, K)
 
     # Define a range of lambda values to test and initialize arrays
@@ -421,16 +414,19 @@ def best_lam(neu_lam, mus_lam, time_bins):
             val_idx = folds[k]
             train_idx = np.hstack([folds[i] for i in range(K) if i != k])
 
+            #take training data out
             neu_train = shape_matrix(neu_tensor[train_idx])
             mus_train = shape_matrix(mus_tensor[train_idx])
 
+            # take testing data out 
             neu_val = shape_matrix(neu_tensor[val_idx])
             mus_val = shape_matrix(mus_tensor[val_idx])
 
+            # recover W_hat
             W_hat, _, _, _, _ = regress(neu_train, mus_train, lam)
 
+            # create estimation for test values and recover MSE 
             mus_pred = neu_val @ W_hat
-
             mse = np.mean((mus_val - mus_pred)**2)
 
             fold_mse.append(mse)
@@ -481,7 +477,7 @@ def simple_lam(N_train, M_train):
     return best_lambda, cv_results
 
 
-def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False, cv = False): 
+def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc = False, cv = True): 
     """
     Takes in M and N matrices and runs ridge regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
