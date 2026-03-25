@@ -1359,8 +1359,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         
     # different limits on the axes depending on which dataset was given
     if J: 
-        bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
-        move_time = np.arange(1250, 2160, 10)
         J_text = "J"
         if fig_4D: 
             move_time = np.arange(-300, 0, 10)
@@ -1369,9 +1367,12 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
              ylims=((0, max + .2),),
              hspace=.05,
              subplot_spec=gs[0])
+        else: 
+            bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
+            move_time = np.arange(1250, 2160, 10)
+        
+        
     else: 
-        bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
-        move_time = np.arange(1170, 2080, 10)
         J_text = "N"
         if fig_4D: 
            move_time = np.arange(-300, 0, 10)
@@ -1380,6 +1381,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             ylims=((0, max + .2),),
             hspace=.05,
             subplot_spec=gs[0])
+        else: 
+            bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
+            move_time = np.arange(1170, 2080, 10)
             
 
     if fig_4D: 
