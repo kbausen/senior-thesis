@@ -893,9 +893,10 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     diff_bin = int((time_bins_pm - time_bins))
     
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_ = run_PCA(move_N, dimensions)
+    N_tilde,N_PCs = run_PCA(move_N, dimensions)
     M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
 
+    N_prep_mov = regress_N @ N_PCs
     # removing preparatory time bins
     # N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
     # N_tilde_tens_reg = N_tilde_tens[:,:,diff_bin:]
@@ -909,7 +910,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde, _ = run_PCA(regress_N, dimensions)
+        N_tilde = regress_N @ N_PCs
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
