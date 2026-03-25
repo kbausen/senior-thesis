@@ -851,7 +851,7 @@ def time_cut (tensor):
         N_idx = np.r_[30:81, 118, 142:208]
     return tensor[:,:, N_idx]
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True, basis_2 = 0):
     """
     Performs regression needed for figure 4. 
 
@@ -911,11 +911,11 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         N_tilde = regress_N @ N_PCs
-        fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
+        fig_4_plot(W, N_tilde, cond, dimensions, basis, J, basis_2)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
 
-def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
+def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     '''
     Plot needed for figure 4. 
 
@@ -1025,11 +1025,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True):
         end_move = end_prep + len(move_time)
 
         if i == 0: 
-            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='darkmagenta', label = 'potent',  linewidth = .5)
-            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='darkmagenta',  linewidth = .5)
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis_2], '-', color='darkmagenta', label = 'potent',  linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis_2], '-', color='darkmagenta',  linewidth = .5)
         else: 
-            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis], '-', color='darkmagenta', linewidth = .5)
-            bax2.plot(move_time, N_potent[end_prep:end_move, basis], '-', color='darkmagenta',  linewidth = .5)
+            bax2.plot(prep_time, N_potent[start_prep:end_prep, basis_2], '-', color='darkmagenta', linewidth = .5)
+            bax2.plot(move_time, N_potent[end_prep:end_move, basis_2], '-', color='darkmagenta',  linewidth = .5)
     
     if J:
         # prep ticks
