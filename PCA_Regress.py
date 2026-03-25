@@ -1170,9 +1170,9 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     N_ppm = regress_N @ N_PCs
 
     # isolating the preparatory and movement bins 
-    # N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-    N_tilde_tens_move = N_ppm[:,:,diff_bin:]
-    N_tilde_tens_prep = N_ppm[:,:,:diff_bin]
+    N_tilde_tens = shape_tensor(N_ppm, cond, time_bins_pm)
+    N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
+    N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
     # reshape into matrices for tuning computation
     N_tilde_move = shape_matrix(N_tilde_tens_move)
