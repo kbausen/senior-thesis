@@ -436,16 +436,16 @@ def best_lam(neu_lam, mus_lam, time_bins):
         mse_vals.append(mean_mse)
         rmse_vals.append(np.sqrt(mean_mse))
 
-        #Identifying the best lambda 
-        best_idx = np.argmin(mse_vals)
+    #Identifying the best lambda 
+    best_idx = np.argmin(mse_vals)
 
-        best_lambda = lambdas[best_idx]
-        min_mse = mse_vals[best_idx]
-        min_rmse = rmse_vals[best_idx]
+    best_lambda = lambdas[best_idx]
+    min_mse = mse_vals[best_idx]
+    min_rmse = rmse_vals[best_idx]
 
-        print(">>> best_lam returning:", best_lambda)
-        # Return the best lambda and its corresponding MSE         
-        return best_lambda, min_mse, min_rmse, mse_vals, rmse_vals
+    print(">>> best_lam returning:", best_lambda)
+    # Return the best lambda and its corresponding MSE         
+    return best_lambda, min_mse, min_rmse, mse_vals, rmse_vals
 
 def simple_lam(N_train, M_train):
     """
