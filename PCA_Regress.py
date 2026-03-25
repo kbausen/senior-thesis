@@ -1149,7 +1149,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
-    regress_N, _, regress_M = time_shift(tensor_N, tensor_M)
+    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -1163,8 +1163,10 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,_ = run_PCA(regress_N, dims1)
+    N_tilde,N_PCs = run_PCA(regress_N, dims1)
     M_tilde,PCs = run_PCA(regress_M, int(dims1/2))
+
+    # multiplying to get it all on the muscle basis 
 
     # isolating the preparatory and movement bins 
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
