@@ -1351,40 +1351,63 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     prep_time = np.arange(0, 810, 10)
     prep_idx = np.arange(81)
     move_idx_start = len(prep_idx)
-    max = np.max(np.abs(np.concatenate([V_null, V_pot])))
+    move_end_4D = move_idx_start + 30
+    max = np.max(np.abs(np.concatenate([V_null[:move_end_4D], V_pot[:move_end_4D]])))
         
     # different limits on the axes depending on which dataset was given
     if J: 
         bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
         move_time = np.arange(1250, 2160, 10)
         J_text = "J"
+        if fig_4D: 
+            bax1 = brokenaxes(xlims=((0, 800), (1250, 1550)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
+            move_time = np.arange(1250, 1550, 10)
     else: 
         bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
         move_time = np.arange(1170, 2080, 10)
         J_text = "N"
+        if fig_4D: 
+            bax1 = brokenaxes(xlims=((0, 800), (1170, 1470)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
+            move_time = np.arange(1170, 1470, 10)
 
+    if fig_4D: 
+        # plotting data
+        move_end = move_idx_start + 30
+        bax1.plot(prep_time, V_null[prep_idx], '-', color='midnightblue', label = 'null', linewidth = 1)
+        bax1.plot(move_time, V_null[move_idx_start:move_end], '-', color='midnightblue',  linewidth = 1)
+        bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
+        bax1.plot(move_time, V_pot[move_idx_start:move_end], '-', color='darkmagenta',  linewidth = 1)
+    else: 
     # plotting data
-    bax1.plot(prep_time, V_null[prep_idx], '-', color='midnightblue', label = 'null', linewidth = 1)
-    bax1.plot(move_time, V_null[move_idx_start:], '-', color='midnightblue',  linewidth = 1)
-    bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
-    bax1.plot(move_time, V_pot[move_idx_start:], '-', color='darkmagenta',  linewidth = 1)
+        bax1.plot(prep_time, V_null[prep_idx], '-', color='midnightblue', label = 'null', linewidth = 1)
+        bax1.plot(move_time, V_null[move_idx_start:], '-', color='midnightblue',  linewidth = 1)
+        bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
+        bax1.plot(move_time, V_pot[move_idx_start:], '-', color='darkmagenta',  linewidth = 1)
 
     if J:
         # preparatory ticks 
         bax1.axs[0].set_xticks([0, 400, 800])
         bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
-
-        # movement ticks
-        bax1.axs[1].set_xticks([1250, 1550, 2170])
-        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+        if fig_4D:
+            # movement ticks
+            bax1.axs[1].set_xticks([1250, 1550])
+            bax1.axs[1].set_xticklabels(['-300', 'move'])
+        else: 
+            # movement ticks
+            bax1.axs[1].set_xticks([1250, 1550, 2170])
+            bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
     else:
         # preparatory ticks
         bax1.axs[0].set_xticks([0, 400, 800])
         bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
-
-        # movement ticks 
-        bax1.axs[1].set_xticks([1170, 1470, 2090])
-        bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
+        if fig_4D:
+            # movement ticks 
+            bax1.axs[1].set_xticks([1170, 1470])
+            bax1.axs[1].set_xticklabels(['-300', 'move'])
+        else: 
+            # movement ticks 
+            bax1.axs[1].set_xticks([1170, 1470, 2090])
+            bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
 
     # sets titles and legend  
     bax1.set_ylabel("Variance")
