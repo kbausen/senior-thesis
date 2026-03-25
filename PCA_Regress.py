@@ -910,8 +910,9 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde = regress_N @ N_PCs
-        fig_4_plot(W, N_tilde, cond, dimensions, basis, J)
+        # N_tilde = regress_N @ N_PCs
+        N_tot, _ = run_PCA(regress_N, dimensions)
+        fig_4_plot(W, N_tot, cond, dimensions, basis, J)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
 
@@ -1163,14 +1164,14 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(N_move, dims1)
+    N_tilde,N_PCs = run_PCA(regress_N, dims1)
     M_tilde,PCs = run_PCA(regress_M, int(dims1/2))
 
-    # multiplying to get it all on the muscle basis 
-    N_ppm = regress_N @ N_PCs
+    # # multiplying to get it all on the muscle basis 
+    # N_ppm = regress_N @ N_PCs
 
     # isolating the preparatory and movement bins 
-    N_tilde_tens = shape_tensor(N_ppm, cond, time_bins_pm)
+    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
     N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
     N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
@@ -1310,8 +1311,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
     regress_N, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)
-    N_move_k, PCs = run_PCA(N_move, dims)
-    N_tilde = regress_N @ PCs
+    N_tilde, PCs = run_PCA(regress_N, dims)
+    # N_tilde = regress_N @ PCs
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
@@ -1387,6 +1388,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
 
     # sets titles and legend  
+    bax1.set_ylabel("Variance")
     if PMd: 
         an_text = "PMd to M1"
     else: 
@@ -1394,7 +1396,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     title_text = f"Monkey {J_text} {an_text} Variance"
     if fig_4D: 
         title_text = f"Monkey {J_text} {an_text} Tuning"
+        bax1.set_ylabel("tuning")
     bax1.set_title(title_text)
     bax1.set_xlabel("Time")
-    bax1.set_ylabel("Variance")
+    
     bax1.legend(loc = 2)
