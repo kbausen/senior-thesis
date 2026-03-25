@@ -1352,7 +1352,10 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     prep_idx = np.arange(81)
     move_idx_start = len(prep_idx)
     move_end_4D = move_idx_start + 30
-    max = np.max(np.abs(np.concatenate([V_null[:move_end_4D], V_pot[:move_end_4D]])))
+    if fig_4D: 
+        max = np.max(np.abs(np.concatenate([V_null[:move_end_4D], V_pot[:move_end_4D]])))
+    else: 
+        max = np.max(np.abs(np.concatenate([V_null, V_pot])))
         
     # different limits on the axes depending on which dataset was given
     if J: 
