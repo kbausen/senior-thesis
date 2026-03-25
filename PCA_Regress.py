@@ -1363,15 +1363,24 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         move_time = np.arange(1250, 2160, 10)
         J_text = "J"
         if fig_4D: 
-            bax1 = brokenaxes(xlims=((0, 800), (1250, 1550)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
-            move_time = np.arange(1250, 1550, 10)
+            move_time = np.arange(-300, 0, 10)
+            bax1 = brokenaxes(
+             xlims=((0, 800), (-300, 0)),
+             ylims=((0, max + .2),),
+             hspace=.05,
+             subplot_spec=gs[0])
     else: 
         bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
         move_time = np.arange(1170, 2080, 10)
         J_text = "N"
         if fig_4D: 
-            bax1 = brokenaxes(xlims=((0, 800), (1170, 1470)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0]) 
-            move_time = np.arange(1170, 1470, 10)
+           move_time = np.arange(-300, 0, 10)
+           bax1 = brokenaxes(
+            xlims=((0, 800), (-300, 0)),
+            ylims=((0, max + .2),),
+            hspace=.05,
+            subplot_spec=gs[0])
+            
 
     if fig_4D: 
         # plotting data
@@ -1393,7 +1402,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
         if fig_4D:
             # movement ticks
-            bax1.axs[1].set_xticks([1250, 1550])
+            bax1.axs[1].set_xticks([-300, 0])
             bax1.axs[1].set_xticklabels(['-300', 'move'])
         else: 
             # movement ticks
@@ -1404,8 +1413,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         bax1.axs[0].set_xticks([0, 400, 800])
         bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
         if fig_4D:
-            # movement ticks 
-            bax1.axs[1].set_xticks([1170, 1470])
+            # movement ticks
+            bax1.axs[1].set_xticks([-300, 0])
             bax1.axs[1].set_xticklabels(['-300', 'move'])
         else: 
             # movement ticks 
