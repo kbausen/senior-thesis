@@ -627,13 +627,13 @@ def fig_3_cut_t(tensor, dimensions):
     J, _ = ident(tensor)
 
     # scaling, mean centering, and arranging the tensor into a matrix
-    N_matrix, N_m_matrix  = time_cut(tensor)
+    N_matrix, _  = time_cut(tensor)
     conditions, _, _ = tensor.shape
     new_bins = int(N_matrix.shape[0] / conditions)
 
     # gathering the left vectors and projecting the N_matrix onto them
-    _, PCs = run_PCA(N_m_matrix, dimensions)
-    proj = N_matrix @ PCs
+    proj, _ = run_PCA(N_matrix, dimensions)
+    
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, new_bins)
@@ -682,18 +682,17 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     """
     d1 -= 1
     d2 -= 1
-    # retrieving dataset specifications 
+        # retrieving dataset specifications 
     J, _ = ident(tensor)
 
     # scaling, mean centering, and arranging the tensor into a matrix
-    N_matrix, N_m_matrix  = time_cut(tensor)
+    N_matrix, _  = time_cut(tensor)
     conditions, _, _ = tensor.shape
     new_bins = int(N_matrix.shape[0] / conditions)
 
     # gathering the left vectors and projecting the N_matrix onto them
-    _, PCs = run_PCA(N_m_matrix, dimensions)
-    proj = N_matrix @ PCs
-
+    proj, _ = run_PCA(N_matrix, dimensions)
+    
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, new_bins)
     
@@ -726,7 +725,6 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
     plt.tight_layout()
     plt.show()
-
 
 
 def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False, fig4 = False):
@@ -912,17 +910,14 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     # difference in bins = prep bins 
     diff_bin = int((time_bins_pm - time_bins))
     
+    # removing prep bins adn reshaping for ridge
+    regress_N = shape_tensor(regress_N, conditions = cond, time_bins = time_bins_pm)
+    N_tens_spliced = regress_N[:,:, diff_bin:]
+    regress_N_sp = shape_matrix(N_tens_spliced)
+
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(move_N, dimensions)
+    N_tilde,N_PCs = run_PCA(regress_N_sp, dimensions)
     M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
-
-
-    # removing preparatory time bins
-    # N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-    # N_tilde_tens_reg = N_tilde_tens[:,:,diff_bin:]
-
-    # # reshape for ridge
-    # N_tilde_reg = shape_matrix(N_tilde_tens_reg)
 
     # running through ridge regression 
     W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(N_tilde, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
@@ -930,7 +925,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde = regress_N @ N_PCs
+        N_tilde = regress_N @ N_PCs  # projecting onto same PCs as earlier 
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J, basis_2)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
 
@@ -1097,14 +1092,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
     N_nm_tensor = shape_tensor(N_null_move, cond)
-    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
+    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)
     N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     N_pm_tensor = shape_tensor(N_pot_move, cond)
-    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
+    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)
     N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
@@ -1130,17 +1125,17 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
 
     # tuning ratio
     var_tuning = (null_prep_var / pot_prep_var) / gamma    # this is with using the sum of variance
-    frob_tuning = (null_prep_frob / pot_prep_frob) / gamma2    # this is with using the frobenius norm
+    frob_tuning = (null_prep_frob / pot_prep_frob) / gamma2    # this is with using the frobenius norm and not variance on the movement data
 
     # fraction of prep in null space and potent space
     null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
     pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var) 
     if get_gamma: 
-        return gamma
+        return gamma2                                                           # RETURNING GAMMA 2 
 
     print("1/Gamma: ", 1/gamma)
-    # print("Tuning with frobenius norm: ", tuning2)
-    # print("Move null/pot:", null_move_var / pot_move_var)
+    print("Tuning with frobenius norm: ", 1/gamma2)
+    print("Move null/pot:", null_move_var / pot_move_var)
     print("Prep null/pot: ", null_prep_var / pot_prep_var)
     print("Tuning with variance: ", var_tuning)
     print("Tuning with frob: ", frob_tuning)
@@ -1183,14 +1178,11 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     diff_bin = int((time_bins_pm - time_bins))
 
     # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(N_move, dims1)
+    N_tilde,N_PCs = run_PCA(regress_N, dims1)
     M_tilde,PCs = run_PCA(regress_M, int(dims1/2))
 
-    # # multiplying to get it all on the muscle basis 
-    N_ppm = regress_N @ N_PCs
-
     # isolating the preparatory and movement bins 
-    N_tilde_tens = shape_tensor(N_ppm, cond, time_bins_pm)
+    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
     N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
     N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
@@ -1330,8 +1322,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
     regress_N, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)
-    _, PCs = run_PCA(N_move, dims)
-    N_tilde = regress_N @ PCs
+    N_tilde, PCs = run_PCA(regress_N, dims)
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
@@ -1360,8 +1351,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         V_null[t] = np.sum(X_null**2) / cond
         V_pot[t]  = np.sum(X_pot**2)  / cond
 
-    if fig_4D: 
-         V_null = (1/gamma) * V_null
+    
+    V_null = (1/gamma) * V_null
+    V_pot = (1/gamma) * V_pot
     
     # initializing figure parameters 
     fig = plt.figure
