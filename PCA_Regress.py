@@ -598,8 +598,12 @@ def scaling (tensor):
     Returns: 
         norm_matrix: a 2D version of tensor (shaped [conditions x time bins, neurons]) which is scaled between 0 and 1 
     """
+    check = tensor.shape[0]
 
-    new_matrix = shape_matrix(tensor)
+    if check < 300:
+        new_matrix = shape_matrix(tensor)
+    else: 
+        new_matrix = tensor
 
     # columns max and min 
     col_max = np.amax(new_matrix, axis = 0)
@@ -622,20 +626,17 @@ def fig_3_cut_t(tensor, dimensions):
     # retrieving dataset specifications 
     J, _ = ident(tensor)
 
-    # using a tensor with only the preparatory and motor activity
-    cut_tensor = time_cut(tensor)
-    conditions, _, time_bins = cut_tensor.shape
-    
+    # scaling, mean centering, and arranging the tensor into a matrix
+    N_matrix, N_m_matrix  = time_cut(tensor)
+    conditions, _, _ = tensor.shape
+    new_bins = int(N_matrix.shape[0] / conditions)
 
-    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
-    matrix = scaling(cut_tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
-
-    # gathering the left vectors
-    proj, _ = run_PCA(mean_centered, dimensions)
+    # gathering the left vectors and projecting the N_matrix onto them
+    _, PCs = run_PCA(N_m_matrix, dimensions)
+    proj = N_matrix @ PCs
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
-    scaled_tensor = shape_tensor(proj, conditions, time_bins)
+    scaled_tensor = shape_tensor(proj, conditions, new_bins)
 
     # starting the figures
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
@@ -681,22 +682,20 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     """
     d1 -= 1
     d2 -= 1
-  # retrieving dataset specifications 
+    # retrieving dataset specifications 
     J, _ = ident(tensor)
 
-    # using a tensor with only the preparatory and motor activity
-    cut_tensor = time_cut(tensor)
-    conditions, _, time_bins = cut_tensor.shape
-    
-    # transforming the 3D tensor into a 2D matrix [condition x time, neurons] and scaling and mean centering it 
-    matrix = scaling(cut_tensor)
-    mean_centered = matrix - np.mean(matrix, axis = 0)
+    # scaling, mean centering, and arranging the tensor into a matrix
+    N_matrix, N_m_matrix  = time_cut(tensor)
+    conditions, _, _ = tensor.shape
+    new_bins = int(N_matrix.shape[0] / conditions)
 
-    # gathering the left vectors
-    proj, _ = run_PCA(mean_centered, dimensions)
+    # gathering the left vectors and projecting the N_matrix onto them
+    _, PCs = run_PCA(N_m_matrix, dimensions)
+    proj = N_matrix @ PCs
 
     # returning the scaled, mean centered, and time cut matrix into a tensor  
-    scaled_tensor = shape_tensor(proj, conditions, time_bins)
+    scaled_tensor = shape_tensor(proj, conditions, new_bins)
     
     for i in range(conditions):
         current_cond = scaled_tensor[i, :, :]
@@ -839,17 +838,38 @@ def time_cut (tensor):
 
     Parameters: 
         tensor: inter_PSTH tensor [conditions, neurons, time bins]
-        go_cue: this is a parameter which will include the time point at the go que
 
     Returns: 
-        cut_tensor: inter_PSTH tensor with only time bins during preparatory activity, go cue, and movement  
+        N_mean_scaled: 2D inter_PSTH matrix with only time bins during preparatory activity, go cue, and movement that has been scaled and centered 
+        N_m_mean_scaled: 2D inter_PSTH matrix with only time bins during movement that has been scaled and centered 
     """
+
+    # retrieving dataset specifications 
     J, _ = ident(tensor)
+
+    # altering movement periods depending on dataset and getting indexes for time cuts (includes go cue needed in figure 3)
     if J:
         N_idx = np.r_[30:81, 120, 150:216]
+        N_move = np.r_[150:216]
     else: 
         N_idx = np.r_[30:81, 118, 142:208]
-    return tensor[:,:, N_idx]
+        N_move = np.r_[142:208]
+    
+    # splicing data
+    N_tens = tensor[:,:, N_idx]
+    N_m_tens = tensor[:,:, N_move]
+
+    # forming it into a matrix again
+    N_mat = shape_matrix(N_tens)
+    N_m_mat = shape_matrix(N_m_tens)
+
+    # scaling and mean centering 
+    N_scale = scaling(N_mat)
+    N_m_scale = scaling (N_m_mat)
+    N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
+    N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
+
+    return N_mean_scaled, N_m_mean_scaled
 
 def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True, basis_2 = 0):
     """
