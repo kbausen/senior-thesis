@@ -901,6 +901,10 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
+    # retrieving data projected onto the first N_dim and M_dim PCs
+    N_tilde,N_PCs = run_PCA(regress_N, dimensions)
+    M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
+
     # how many time bins are included in the movement period 
     time_bins = int(time_ct / cond)
 
@@ -911,16 +915,12 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     diff_bin = int((time_bins_pm - time_bins))
     
     # removing prep bins adn reshaping for ridge
-    regress_N = shape_tensor(regress_N, conditions = cond, time_bins = time_bins_pm)
+    regress_N = shape_tensor(N_tilde, conditions = cond, time_bins = time_bins_pm)
     N_tens_spliced = regress_N[:,:, diff_bin:]
     regress_N_sp = shape_matrix(N_tens_spliced)
 
-    # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(regress_N_sp, dimensions)
-    M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
-
     # running through ridge regression 
-    W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(N_tilde, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
+    W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
                                                                                          mc = False, cv = cv)
 
     if plot:
