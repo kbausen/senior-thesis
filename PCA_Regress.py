@@ -395,7 +395,7 @@ def best_lam(neu_lam, mus_lam, time_bins):
     mus_tensor = shape_tensor(mus_lam, conds)
 
     # set up folds and random conditions 
-    K = 5
+    K = min(5, conds)
     cond_idx = np.arange(conds)
     np.random.shuffle(cond_idx)
     folds = np.array_split(cond_idx, K)
@@ -510,33 +510,21 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     np.random.shuffle(all_idx)
 
     # calculate the sizes of each set 
-    size_10_percent = int((conds * 0.1))    # 10% for lambda 
-    size_20_percent = int((conds * 0.2))    # 20% for testing
-
-    # splitting the shuffled index array 
-    split_points = [size_10_percent, size_10_percent + size_20_percent]
-    split_sets = np.split(all_idx, split_points)
-
-    # indexes of the split data 
-    lam_idx = split_sets[0]           # 10% of data
-    test_idx = split_sets[1]          # 20% of data 
-    train_idx = split_sets[2]         # 70% of data
+    split = int((conds * 0.2))    # 20% for testing
+    train_idx = all_idx[split:]
+    test_idx = all_idx[:split]
 
     # shaping back into a tensor 
     neu_tensor = shape_tensor(N_tilde, conds)
     mus_tensor = shape_tensor(M_tilde, conds)
 
-    # isolating the data as they've been split above
-    neu_lam_tens = neu_tensor[lam_idx, :, :]          # 10% for lambda
-    mus_lam_tens = mus_tensor[lam_idx, :, :]          # 10% for lambda
+    # isolating the data as they've been split above         
     neu_test_tens = neu_tensor[test_idx, :, :]        # 20% for testing
     mus_test_tens = mus_tensor[test_idx, :, :]        # 20% for testing
     neu_train_tens = neu_tensor[train_idx, :, :]      # 80% for training
     mus_train_tens = mus_tensor[train_idx, :, :]      # 80% for training
 
-    # reshaping into matrix
-    neu_lam_mat = shape_matrix(neu_lam_tens)         
-    mus_lam_mat = shape_matrix(mus_lam_tens)          
+    # reshaping into matrix        
     neu_test_mat = shape_matrix(neu_test_tens)        
     mus_test_mat = shape_matrix(mus_test_tens)        
     neu_train_mat = shape_matrix(neu_train_tens)      
@@ -544,9 +532,9 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
 
     # Calling best lambda
     if cv:
-        lam, _, _, _, _ = best_lam(neu_lam_mat, mus_lam_mat, num_bins)
+        lam, _, _, _, _ = best_lam(neu_train_mat, mus_train_mat, num_bins)
     else: 
-        lam, _ = simple_lam(neu_lam_mat, mus_lam_mat)
+        lam, _ = simple_lam(neu_train_mat, mus_train_mat)
 
     # setting up for regression
     neu_train_cov = neu_train_mat.T @ neu_train_mat
@@ -565,23 +553,12 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
 
     # overall
     R2_total = 1 - np.sum((M_tilde - M_hat)**2) / np.sum((M_tilde - M_tilde.mean(axis=0))**2)
-    # for i in range (W.shape[1]):
-    #     SST = mus_test_mat[:,i] - np.mean(mus_test_mat[:,i])
-    #     SST = SST @ SST.T
-    #     SSR = M_test_hat[:,i] - np.mean(mus_test_mat[:,i])
-    #     SSR = SSR @ SSR.T
-    #     R_sq = 1 - (SSR / SST)
-    #     R_squared.append(R_sq)
-    # R_squared = np.array(R_squared)
-
-    # projecting M_hat onto the PCs of M for a reconstruction 
-    # M_hat_recon = M_test_hat @ PCs.T 
-
+    
     # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W 
     MSE_test = mse_fun(mus_test_mat, M_test_hat)
     RMSE_test = np.sqrt(MSE_test)
 
-    
+    # RMSE and MSE for whole dataset
     MSE_all = mse_fun(M_tilde, M_hat)
     RMSE_all = np.sqrt(MSE_all)
     
