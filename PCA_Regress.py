@@ -1198,7 +1198,8 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     
     for i in range(rep + 1): 
         # computing W 
-        W1,_,_,_,_,_,_ = fig_4(tensor_N, tensor_M, plot = False,  dimensions = dims1, cv = cv)
+        W1, _, _, _, _, _, _ = r_regress(N_tilde_move, M_tilde, PCs, N_dim = dims1, num_bins = time_bins, 
+                                                                                         mc = False, cv = cv)
         U, S_val, V = np.linalg.svd(W1, full_matrices = True)
         S_val = np.diag(S_val)
         rank = int(dims1/2)
