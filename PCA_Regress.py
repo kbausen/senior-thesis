@@ -918,6 +918,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     regress_N = shape_tensor(N_tilde, conditions = cond, time_bins = time_bins_pm)
     N_tens_spliced = regress_N[:,:, diff_bin:]
     regress_N_sp = shape_matrix(N_tens_spliced)
+    print(cv)
 
     # running through ridge regression 
     W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, PCs, N_dim = dimensions, num_bins = time_bins, 
@@ -1218,7 +1219,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
         pot_frac.append(pot_frac_i)
     return var_tuning, frob_tuning, null_frac, pot_frac
 
-def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = False):
+def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1, cv = True):
     """
     Function which takes two tensors, performs reduced rank regression with the set of dimensions, and will plot the proportion of preparatory activity occupying the 
     null space and potent space, as well as have the tuning ratio above it. The regression can be repeated multiple times for one set of dimension and the tuning 
