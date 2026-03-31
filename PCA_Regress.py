@@ -401,7 +401,7 @@ def best_lam(neu_lam, mus_lam, time_bins):
     folds = np.array_split(cond_idx, K)
 
     # Define a range of lambda values to test and initialize arrays
-    lambdas = np.logspace(-2, 3, 20)
+    lambdas = np.logspace(-4, 5, 40)
     mse_vals = []
     rmse_vals = []
 
@@ -784,6 +784,8 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
     N_move_matrix = shape_matrix(N_move)
     M_move_matrix = shape_matrix(M_move)
    
+    scale = False
+
     if scale:
         N_cut_scale = scaling(N_cut)
         N_move_scale = scaling(N_move)
