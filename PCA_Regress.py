@@ -550,7 +550,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
 
     # setting up for regression
     neu_train_cov = neu_train_mat.T @ neu_train_mat
-    I = np.identity(N_dim)
+    I = np.identity(neu_train_cov.shape[0])
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
     W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
