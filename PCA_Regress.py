@@ -462,7 +462,7 @@ def simple_lam(N_train, M_train):
     """
 
      # Define a range of lambda values to test
-    lambdas = np.logspace(-2, 3, 20)
+    lambdas = np.logspace(-3, 3, 25)
 
     # Initialize the RidgeCV model with the lambda values, this will minimize MSE, and is data centered
     model_cv = RidgeCV(alphas=lambdas, scoring='neg_mean_squared_error', store_cv_results=True, fit_intercept = False)
