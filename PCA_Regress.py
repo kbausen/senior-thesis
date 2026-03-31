@@ -583,8 +583,8 @@ def scaling (tensor):
         new_matrix = tensor
 
     # columns max and min 
-    col_max = np.amax(new_matrix, axis = 0)
-    col_min = np.amin(new_matrix, axis = 0)
+    col_max = np.max(new_matrix)
+    col_min = np.min(new_matrix)
 
     # normalizing by their ranges
     norm_matrix = (new_matrix - col_min) / (col_max - col_min)
@@ -784,7 +784,6 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
     N_move_matrix = shape_matrix(N_move)
     M_move_matrix = shape_matrix(M_move)
    
-    scale = False
 
     if scale:
         N_cut_scale = scaling(N_cut)
