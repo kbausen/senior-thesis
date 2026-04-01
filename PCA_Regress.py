@@ -211,7 +211,7 @@ def run_PCA (matrix, rank):
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
     C_2 = matrix.T @ matrix
-    
+    C_2 = C_2 / matrix.shape[0]
     # runs PCA 
     U, S_, V_T = svd(C_2)
 
@@ -1337,16 +1337,16 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_pot  = pot_tensor[:, :, t]
         X_null = null_tensor[:, :, t]
         
-        V_null[t] = np.var(X_null).sum() / dims
-        V_pot[t] = np.var(X_pot).sum() / dims
+        V_null[t] = np.sum(np.var(X_null, axis=0))
+        V_pot[t]  = np.sum(np.var(X_pot, axis=0)) 
 
         # # subtract across-condition mean
         # X_null = X_null - X_null.mean(axis=0, keepdims=True)
         # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
         # # squaring and adding values and dividing by condition numbers to compute variance
-        # V_null[t] = np.sum(X_null**2) / (cond * 6)
-        # V_pot[t]  = np.sum(X_pot**2)  / (cond * 6)
+        # V_null[t] = np.sum(X_null**2) / (cond * dims)
+        # V_pot[t]  = np.sum(X_pot**2)  / (cond * dims)
 
     
     V_null = (1/gamma) * V_null
