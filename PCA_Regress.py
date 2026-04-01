@@ -595,11 +595,14 @@ def scaling (tensor):
     # normalizing by their ranges
     #norm_matrix = (new_matrix - col_min) / (col_max - col_min)
 
-    for i in range(new_matrix.shape[1]):
-        standardized[:, i] = (new_matrix[:,i] - np.mean(new_matrix[:, i])) / stand[i]
+    # Z-scoring 
+    mean = np.mean(new_matrix, axis=0)
+    std = np.std(new_matrix, axis=0)
+    std[std == 0] = 1
+    standardized = (new_matrix - mean) / std
+
+    for i in range(norm_matrix.shape[1]):
         norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
-        
-    
     return(standardized)
     
 
@@ -1334,9 +1337,11 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_pot  = pot_tensor[:, :, t]
         X_null = null_tensor[:, :, t]
         
+
+
         # subtract across-condition mean
         X_null = X_null - X_null.mean(axis=0, keepdims=True)
-        X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
+        # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
         # squaring and adding values and dividing by condition numbers to compute variance
         V_null[t] = np.sum(X_null**2) / cond
