@@ -582,13 +582,24 @@ def scaling (tensor):
     else: 
         new_matrix = tensor
 
+    # trying other form of scaling 
+    stand = np.std(new_matrix, axis = 0)
+
+    standardized = np.zeros_like(new_matrix)
+    norm_matrix = np.zeros_like(new_matrix)
+
     # columns max and min 
-    col_max = np.max(new_matrix)
-    col_min = np.min(new_matrix)
+    col_max = np.amax(new_matrix, axis = 0)
+    col_min = np.amin(new_matrix, axis = 0)
 
     # normalizing by their ranges
-    norm_matrix = (new_matrix - col_min) / (col_max - col_min)
+    #norm_matrix = (new_matrix - col_min) / (col_max - col_min)
 
+    for i in range(new_matrix.shape[1]):
+        standardized[:, i] = new_matrix[:,i] / stand[i]
+        norm_matrix[:, i] = (new_matrix[:, i] - col_min[i]) / (col_max[i] - col_min[i])
+        
+    
     return(norm_matrix)
     
 
