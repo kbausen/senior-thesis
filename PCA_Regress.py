@@ -596,12 +596,11 @@ def scaling (tensor):
     #norm_matrix = (new_matrix - col_min) / (col_max - col_min)
 
     for i in range(new_matrix.shape[1]):
-        standardized[:, i] = new_matrix[:,i] / stand[i]
-        norm_matrix[:, i] = (new_matrix[:, i]
-                             ) / (col_max[i] - col_min[i])
+        standardized[:, i] = (new_matrix[:,i] - np.mean(new_matrix[:, i])) / stand[i]
+        norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
         
     
-    return(norm_matrix)
+    return(standardized)
     
 
 def fig_3_cut_t(tensor, dimensions):
@@ -802,23 +801,23 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
         N_move_scale = scaling(N_move)
         M_move_scale = scaling(M_move)
 
-    if mean_c and scale:
-        N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
-        N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
-        M_move_mc = M_move_scale - np.mean(M_move_scale, axis = 0)
-    elif mean_c:
-        N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
-        N_move_mc = N_move_matrix - np.mean(N_move_matrix, axis = 0)
-        M_move_mc = M_move_matrix - np.mean(M_move_matrix, axis = 0)
+    # if mean_c and scale:
+    #     N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
+    #     N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
+    #     M_move_mc = M_move_scale - np.mean(M_move_scale, axis = 0)
+    # elif mean_c:
+    #     N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
+    #     N_move_mc = N_move_matrix - np.mean(N_move_matrix, axis = 0)
+    #     M_move_mc = M_move_matrix - np.mean(M_move_matrix, axis = 0)
     
     # in case want back in tensor form for mean centered and scaled 
-    if tensors:
-        N_adj_tensor = shape_tensor(N_cut_mc)
-        N_move_tensor = shape_tensor(N_move_mc)
-        M_adj_tensor = shape_tensor(M_move_mc)
-        return N_adj_tensor, N_move_tensor, M_adj_tensor
+    # if tensors:
+    #     N_adj_tensor = shape_tensor(N_cut_mc)
+    #     N_move_tensor = shape_tensor(N_move_mc)
+    #     M_adj_tensor = shape_tensor(M_move_mc)
+    #     return N_adj_tensor, N_move_tensor, M_adj_tensor
 
-    return N_cut_mc, N_move_mc, M_move_mc
+    return N_cut_scale, N_move_scale, M_move_scale
 
 def time_cut (tensor):
     """
