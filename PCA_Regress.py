@@ -1344,8 +1344,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
         # squaring and adding values and dividing by condition numbers to compute variance
-        V_null[t] = np.sum(X_null**2) / cond
-        V_pot[t]  = np.sum(X_pot**2)  / cond
+        V_null[t] = np.sum(X_null**2) / (cond * 6)
+        V_pot[t]  = np.sum(X_pot**2)  / (cond * 6)
 
     
     V_null = (1/gamma) * V_null
