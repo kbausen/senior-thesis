@@ -592,9 +592,6 @@ def scaling (tensor):
     col_max = np.amax(new_matrix, axis = 0)
     col_min = np.amin(new_matrix, axis = 0)
 
-    # normalizing by their ranges
-    #norm_matrix = (new_matrix - col_min) / (col_max - col_min)
-
     # Z-scoring 
     mean = np.mean(new_matrix, axis=0)
     std = np.std(new_matrix, axis=0)
@@ -603,7 +600,8 @@ def scaling (tensor):
 
     for i in range(norm_matrix.shape[1]):
         norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
-    return(standardized)
+        norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
+    return(norm_matrix)
     
 
 def fig_3_cut_t(tensor, dimensions):
@@ -856,10 +854,10 @@ def time_cut (tensor):
     # scaling and mean centering 
     N_scale = scaling(N_mat)
     N_m_scale = scaling (N_m_mat)
-    N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
-    N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
+    # N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
+    # N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
 
-    return N_mean_scaled, N_m_mean_scaled
+    return N_scale, N_m_scale
 
 def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True, basis_2 = 0):
     """
