@@ -597,7 +597,8 @@ def scaling (tensor):
 
     for i in range(new_matrix.shape[1]):
         standardized[:, i] = new_matrix[:,i] / stand[i]
-        norm_matrix[:, i] = (new_matrix[:, i] - col_min[i]) / (col_max[i] - col_min[i])
+        norm_matrix[:, i] = (new_matrix[:, i]
+                             ) / (col_max[i] - col_min[i])
         
     
     return(norm_matrix)
