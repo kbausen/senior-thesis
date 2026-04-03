@@ -577,6 +577,7 @@ def scaling (tensor, tuning = False):
 
     Parameters: 
         tensor: a 3D tensor of shape [conditions, neurons, time bins]
+        tuning: across time x neuron scaling
 
     Returns: 
         norm_matrix: a 2D version of tensor (shaped [conditions x time bins, neurons]) which is scaled between 0 and 1 
@@ -878,8 +879,8 @@ def time_cut (tensor):
     N_m_tens = tensor[:,:, N_move]
 
     # scaling and mean centering it into a matrix 
-    N_scale = scaling(N_tens, scale = False)
-    N_m_scale = scaling (N_m_tens, scale = False)
+    N_scale = scaling(N_tens, False)
+    N_m_scale = scaling (N_m_tens, False)
     # N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
     # N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
 
