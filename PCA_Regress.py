@@ -570,7 +570,7 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     
     return W, mus_test_mat, M_test_hat, R2_total, R2_dims, MSE_all, RMSE_all
     
-def scaling (tensor):
+def scaling (tensor, tuning = False):
     """
     Takes in a tensor of shape [conditions, neurons, time bins] and scales it between 0 and 1. Then returns a tall and skinny 2D matrix of 
     shape [conditions x time bins, neurons]. 
@@ -583,53 +583,55 @@ def scaling (tensor):
     """
     check = tensor.shape[0]
 
-    """
-    Full preprocessing:
-    1. Soft normalize (Kaufman-style)
-    2. Subtract across-condition mean at each timepoint
-    """
-    epsilon = 5
-    # --- soft normalization ---
-    max_val = np.max(tensor, axis=(0,2), keepdims=True)
-    min_val = np.min(tensor, axis=(0,2), keepdims=True)
-    range_val = max_val - min_val
-    tensor = tensor / (range_val + epsilon)
-    
-    # --- condition-wise centering ---
-    mean_across_cond = np.mean(tensor, axis=0, keepdims=True)
-    tensor = tensor - mean_across_cond
-    
-    # reshape into matrix 
-    matrix = shape_matrix(tensor)
+    if tuning: 
 
-    return matrix
+        """
+        Full preprocessing:
+        1. Soft normalize (Kaufman-style)
+        2. Subtract across-condition mean at each timepoint
+        """
+        epsilon = 5
+        # --- soft normalization ---
+        max_val = np.max(tensor, axis=(0,2), keepdims=True)
+        min_val = np.min(tensor, axis=(0,2), keepdims=True)
+        range_val = max_val - min_val
+        tensor = tensor / (range_val + epsilon)
+        
+        # --- condition-wise centering ---
+        mean_across_cond = np.mean(tensor, axis=0, keepdims=True)
+        tensor = tensor - mean_across_cond
+        
+        # reshape into matrix 
+        matrix = shape_matrix(tensor)
+
+        return matrix
 
 
-    # if check < 300:
-    #     new_matrix = shape_matrix(tensor)
-    # else: 
-    #     new_matrix = tensor
+    if check < 300:
+        new_matrix = shape_matrix(tensor)
+    else: 
+        new_matrix = tensor
 
-    # # trying other form of scaling 
-    # stand = np.std(new_matrix, axis = 0)
+    # trying other form of scaling 
+    stand = np.std(new_matrix, axis = 0)
 
-    # standardized = np.zeros_like(new_matrix)
-    # norm_matrix = np.zeros_like(new_matrix)
+    standardized = np.zeros_like(new_matrix)
+    norm_matrix = np.zeros_like(new_matrix)
 
-    # # columns max and min 
-    # col_max = np.amax(new_matrix, axis = 0)
-    # col_min = np.amin(new_matrix, axis = 0)
+    # columns max and min 
+    col_max = np.amax(new_matrix, axis = 0)
+    col_min = np.amin(new_matrix, axis = 0)
 
-    # # Z-scoring 
-    # mean = np.mean(new_matrix, axis=0)
-    # std = np.std(new_matrix, axis=0)
-    # std[std == 0] = 1
-    # standardized = (new_matrix - mean) / std
+    # Z-scoring 
+    mean = np.mean(new_matrix, axis=0)
+    std = np.std(new_matrix, axis=0)
+    std[std == 0] = 1
+    standardized = (new_matrix - mean) / std
 
-    # for i in range(norm_matrix.shape[1]):
-    #     norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
-    #     norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
-    # return(standardized)
+    for i in range(norm_matrix.shape[1]):
+        norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
+        norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
+    return(norm_matrix)
     
 
 def fig_3_cut_t(tensor, dimensions):
@@ -744,7 +746,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     plt.show()
 
 
-def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False, fig4 = False):
+def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is 
     necessary before PCA or anything can be run on the data 
@@ -825,10 +827,9 @@ def time_shift(tensor_N, tensor_M, scale = True, mean_c = True, tensors = False,
     M_move_matrix = shape_matrix(M_move)
    
 
-    if scale:
-        N_cut_scale = scaling(N_cut)
-        N_move_scale = scaling(N_move)
-        M_move_scale = scaling(M_move)
+    N_cut_scale = scaling(N_cut, scale)
+    N_move_scale = scaling(N_move, scale)
+    M_move_scale = scaling(M_move, scale)
 
     # if mean_c and scale:
     #     N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
@@ -911,7 +912,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
+    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, scale = True)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -939,7 +940,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
                                                                                          mc = False, cv = cv)
 
     if plot:
-        regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        regress_N, _,_ = time_shift(tensor_N, tensor_M, scale = True, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         N_tilde = regress_N @ N_PCs  # projecting onto same PCs as earlier 
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J, basis_2)
     return W, mus_test_mat, M_test_hat, R2_total, R2_dim, MSE_all, RMSE_all
@@ -1179,7 +1180,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
-    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)
+    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, scale = True)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -1337,7 +1338,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
-    regress_N, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)
+    regress_N, N_move, _ = time_shift(tensor_N, tensor_M, scale = True, fig4 = True)
     N_tilde, PCs = run_PCA(regress_N, dims)
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
