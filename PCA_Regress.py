@@ -912,7 +912,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M, scale = True)
+    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
