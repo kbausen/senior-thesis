@@ -1109,14 +1109,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
     N_nm_tensor = shape_tensor(N_null_move, cond)
-    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out 
+    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out 
     N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     N_pm_tensor = shape_tensor(N_pot_move, cond)
-    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out 
+    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out 
     N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
@@ -1242,9 +1242,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     cond, _, _ = tensor_N.shape
 
     for dim in dims: 
-        N_full, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
         regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
-        N_tilde, PCs = run_PCA(regress_N, dim)
+        N_tilde, _ = run_PCA(regress_N, dim)
         M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
         # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement 
@@ -1340,7 +1339,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
     N_tilde, PCs = run_PCA(regress_N, dims)
     M_tilde, _ = run_PCA(regress_M, int(dims/2))
-
 
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
