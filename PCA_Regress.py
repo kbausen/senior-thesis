@@ -210,7 +210,6 @@ def run_PCA (matrix, rank):
         proj: the projected rank k approximation of the dataset
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
-    matrix = matrix - np.mean(matrix, axis = 0, keepdims = True)
     C_2 = matrix.T @ matrix
     C_2 = C_2 / matrix.shape[0]
     # runs PCA 
