@@ -531,10 +531,10 @@ def r_regress (N_tilde, M_tilde, num_bins, cv = True):
     mus_train_mat = shape_matrix(mus_train_tens)
 
     # mean centering 
-    neu_train_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
-    mus_train_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)
-    neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
-    mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
+    # neu_train_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
+    # mus_train_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)
+    # neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
+    # mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
     # Calling best lambda
     if cv:
