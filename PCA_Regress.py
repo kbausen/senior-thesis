@@ -1244,8 +1244,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     for dim in dims: 
         N_full, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
         regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
-        N_tilde, PCs = run_PCA(regress_N, dims)
-        M_tilde, _ = run_PCA(regress_M, int(dims/2))
+        N_tilde, PCs = run_PCA(regress_N, dim)
+        M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
         # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement 
         time_ct = regress_M.shape [0]
