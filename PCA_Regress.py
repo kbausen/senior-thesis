@@ -210,6 +210,7 @@ def run_PCA (matrix, rank):
         proj: the projected rank k approximation of the dataset
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
+    matrix = matrix - np.mean(matrix, axis = 0, keepdims = True)
     C_2 = matrix.T @ matrix
     C_2 = C_2 / matrix.shape[0]
     # runs PCA 
@@ -528,7 +529,13 @@ def r_regress (N_tilde, M_tilde, PCs, N_dim = 6, M_dim = 3, num_bins = 236, mc =
     neu_test_mat = shape_matrix(neu_test_tens)        
     mus_test_mat = shape_matrix(mus_test_tens)        
     neu_train_mat = shape_matrix(neu_train_tens)      
-    mus_train_mat = shape_matrix(mus_train_tens)      
+    mus_train_mat = shape_matrix(mus_train_tens)
+
+    # mean centering 
+    neu_train_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
+    mus_train_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)
+    neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
+    mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
     # Calling best lambda
     if cv:
@@ -577,31 +584,53 @@ def scaling (tensor):
     """
     check = tensor.shape[0]
 
-    if check < 300:
-        new_matrix = shape_matrix(tensor)
-    else: 
-        new_matrix = tensor
+    """
+    Full preprocessing:
+    1. Soft normalize (Kaufman-style)
+    2. Subtract across-condition mean at each timepoint
+    """
+    epsilon = 5
+    # --- soft normalization ---
+    max_val = np.max(tensor, axis=(0,2), keepdims=True)
+    min_val = np.min(tensor, axis=(0,2), keepdims=True)
+    range_val = max_val - min_val
+    tensor = tensor / (range_val + epsilon)
+    
+    # --- condition-wise centering ---
+    mean_across_cond = np.mean(tensor, axis=0, keepdims=True)
+    tensor = tensor - mean_across_cond
+    
+    # reshape into matrix 
+    matrix = shape_matrix(tensor)
 
-    # trying other form of scaling 
-    stand = np.std(new_matrix, axis = 0)
+    return matrix
 
-    standardized = np.zeros_like(new_matrix)
-    norm_matrix = np.zeros_like(new_matrix)
 
-    # columns max and min 
-    col_max = np.amax(new_matrix, axis = 0)
-    col_min = np.amin(new_matrix, axis = 0)
+    # if check < 300:
+    #     new_matrix = shape_matrix(tensor)
+    # else: 
+    #     new_matrix = tensor
 
-    # Z-scoring 
-    mean = np.mean(new_matrix, axis=0)
-    std = np.std(new_matrix, axis=0)
-    std[std == 0] = 1
-    standardized = (new_matrix - mean) / std
+    # # trying other form of scaling 
+    # stand = np.std(new_matrix, axis = 0)
 
-    for i in range(norm_matrix.shape[1]):
-        norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
-        norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
-    return(standardized)
+    # standardized = np.zeros_like(new_matrix)
+    # norm_matrix = np.zeros_like(new_matrix)
+
+    # # columns max and min 
+    # col_max = np.amax(new_matrix, axis = 0)
+    # col_min = np.amin(new_matrix, axis = 0)
+
+    # # Z-scoring 
+    # mean = np.mean(new_matrix, axis=0)
+    # std = np.std(new_matrix, axis=0)
+    # std[std == 0] = 1
+    # standardized = (new_matrix - mean) / std
+
+    # for i in range(norm_matrix.shape[1]):
+    #     norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
+    #     norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
+    # return(standardized)
     
 
 def fig_3_cut_t(tensor, dimensions):
@@ -847,13 +876,9 @@ def time_cut (tensor):
     N_tens = tensor[:,:, N_idx]
     N_m_tens = tensor[:,:, N_move]
 
-    # forming it into a matrix again
-    N_mat = shape_matrix(N_tens)
-    N_m_mat = shape_matrix(N_m_tens)
-
-    # scaling and mean centering 
-    N_scale = scaling(N_mat)
-    N_m_scale = scaling (N_m_mat)
+    # scaling and mean centering it into a matrix 
+    N_scale = scaling(N_tens)
+    N_m_scale = scaling (N_m_tens)
     # N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
     # N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
 
