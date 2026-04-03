@@ -878,8 +878,8 @@ def time_cut (tensor):
     N_m_tens = tensor[:,:, N_move]
 
     # scaling and mean centering it into a matrix 
-    N_scale = scaling(N_tens)
-    N_m_scale = scaling (N_m_tens)
+    N_scale = scaling(N_tens, scale = False)
+    N_m_scale = scaling (N_m_tens, scale = False)
     # N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
     # N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
 
@@ -1181,7 +1181,7 @@ def tuning_setup (tensor_N, tensor_M, dims1 = 6, cv = True, rep = 0, time = Fals
     J, PMd = ident(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement for M1 and the prep + movement for N1)
-    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M, scale = True)
+    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
@@ -1339,13 +1339,17 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     # getting weights matrix for potent and null space 
     cond, _, fin_time = tensor_N.shape
-    regress_N, N_move, _ = time_shift(tensor_N, tensor_M, scale = True, fig4 = True)
+    N_full, N_move, _ = time_shift(tensor_N, tensor_M, fig4 = True)
+    regress_N, N_move, _ = time_shift(tensor_N, tensor_M)
     N_tilde, PCs = run_PCA(regress_N, dims)
     W_potent, W_null, gamma = tuning_setup(tensor_N, tensor_M, dims, time = True)
     
+    # projecting the expanded range onto the PCs recovered from the normal range 
+    N_tilde_full = N_full @ PCs
+
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
-    N_potent = N_tilde @ W_potent
-    N_null = N_tilde @ W_null
+    N_potent = N_tilde_full @ W_potent
+    N_null = N_tilde_full @ W_null
 
     # reshaping into a tensor 
     pot_tensor = shape_tensor(N_potent, cond)
