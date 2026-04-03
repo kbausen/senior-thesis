@@ -1270,7 +1270,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dim, time_bins, rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
