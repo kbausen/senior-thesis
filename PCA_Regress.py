@@ -405,48 +405,48 @@ def best_lam(neu_lam, mus_lam, time_bins):
     lambdas = np.logspace(-4, 5, 40)
     mse_vals = []
     rmse_vals = []
-    w_hat = np.zeros(())
-
-    W_lams = []   # <-- store one W per lambda
 
     for lam in lambdas:
 
         fold_mse = []
-        fold_W = []   # <-- store W per fold
 
         for k in range(K):
 
             val_idx = folds[k]
             train_idx = np.hstack([folds[i] for i in range(K) if i != k])
 
+            #take training data out
             neu_train = shape_matrix(neu_tensor[train_idx])
             mus_train = shape_matrix(mus_tensor[train_idx])
 
+            # take testing data out 
             neu_val = shape_matrix(neu_tensor[val_idx])
             mus_val = shape_matrix(mus_tensor[val_idx])
 
+            # recover W_hat
             W_hat, _, _, _, _ = regress(neu_train, mus_train, lam)
 
+            # create estimation for test values and recover MSE 
             mus_pred = neu_val @ W_hat
             mse = np.mean((mus_val - mus_pred)**2)
 
             fold_mse.append(mse)
-            fold_W.append(W_hat)   # <-- save it
 
         mean_mse = np.mean(fold_mse)
 
-        # 🔥 average weights across folds
-        W_mean = np.mean(fold_W, axis=0)
-
-        W_lams.append(W_mean)
         mse_vals.append(mean_mse)
         rmse_vals.append(np.sqrt(mean_mse))
+
+    #Identifying the best lambda 
     best_idx = np.argmin(mse_vals)
 
     best_lambda = lambdas[best_idx]
-    W_best = W_lams[best_idx]
+    min_mse = mse_vals[best_idx]
+    min_rmse = rmse_vals[best_idx]
 
-    return best_lambda, W_best, mse_vals, rmse_vals
+    print(">>> best_lam returning:", best_lambda)
+    # Return the best lambda and its corresponding MSE 
+    return best_lambda, mse_vals, rmse_vals
 
 def simple_lam(N_train, M_train):
     """
@@ -478,7 +478,7 @@ def simple_lam(N_train, M_train):
     return best_lambda, cv_results
 
 
-def r_regress (N_tilde, M_tilde, num_bins, cv = True): 
+def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True): 
     """
     Takes in M and N matrices and runs ridge regression on these matrices projected onto their first N_dim and M_dim PCs
     to generate a weight matrix (W) so that M_hat = N W. Also calculates R squared values. 
@@ -520,16 +520,16 @@ def r_regress (N_tilde, M_tilde, num_bins, cv = True):
     mus_tensor = shape_tensor(M_tilde, conds)
 
     # isolating the data as they've been split above         
-    # neu_test_tens = neu_tensor[test_idx, :, :]        # 20% for testing
-    # mus_test_tens = mus_tensor[test_idx, :, :]        # 20% for testing
-    # neu_train_tens = neu_tensor[train_idx, :, :]      # 80% for training
-    # mus_train_tens = mus_tensor[train_idx, :, :]      # 80% for training
+    neu_test_tens = neu_tensor[test_idx, :, :]        # 20% for testing
+    mus_test_tens = mus_tensor[test_idx, :, :]        # 20% for testing
+    neu_train_tens = neu_tensor[train_idx, :, :]      # 80% for training
+    mus_train_tens = mus_tensor[train_idx, :, :]      # 80% for training
 
-    # # reshaping into matrix        
-    # neu_test_mat = shape_matrix(neu_test_tens)        
-    # mus_test_mat = shape_matrix(mus_test_tens)        
-    # neu_train_mat = shape_matrix(neu_train_tens)      
-    # mus_train_mat = shape_matrix(mus_train_tens)
+    # reshaping into matrix        
+    neu_test_mat = shape_matrix(neu_test_tens)        
+    mus_test_mat = shape_matrix(mus_test_tens)        
+    neu_train_mat = shape_matrix(neu_train_tens)      
+    mus_train_mat = shape_matrix(mus_train_tens)
 
     # mean centering 
     # neu_train_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
@@ -539,19 +539,24 @@ def r_regress (N_tilde, M_tilde, num_bins, cv = True):
 
     # Calling best lambda
     if cv:
-        lam, W, _, _,  = best_lam(N_tilde, M_tilde, num_bins)
+        lam, _, _  = best_lam(N_tilde, M_tilde, num_bins)
     else: 
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
 
-    # # setting up for regression
-    # neu_train_cov = neu_train_mat.T @ neu_train_mat
-    # I = np.identity(neu_train_cov.shape[0])
-    
-    # # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
-    # W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
+    # setting up for regression
+    neu_train_cov = neu_train_mat.T @ neu_train_mat
+    I = np.identity(neu_train_cov.shape[0])
 
-    # # calculating the M_hat by multiplying neu_test_mat and W from above
-    # M_test_hat = neu_test_mat @ W
+    if J and not PMd: 
+        lam = 100
+    
+    elif not J and PMd: 
+        lam = 58.780160722749116
+    # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
+    W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
+
+    # calculating the M_hat by multiplying neu_test_mat and W from above
+    M_test_hat = neu_test_mat @ W
     M_hat = N_tilde @ W
 
     # calculating R squared for each column of M_tilde
@@ -562,8 +567,8 @@ def r_regress (N_tilde, M_tilde, num_bins, cv = True):
     R2_total = 1 - np.sum((M_tilde - M_hat)**2) / np.sum((M_tilde - M_tilde.mean(axis=0))**2)
     
     # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W 
-    # MSE_test = mse_fun(mus_test_mat, M_test_hat)
-    # RMSE_test = np.sqrt(MSE_test)
+    MSE_test = mse_fun(mus_test_mat, M_test_hat)
+    RMSE_test = np.sqrt(MSE_test)
 
     # RMSE and MSE for whole dataset
     MSE_all = mse_fun(M_tilde, M_hat)
@@ -939,7 +944,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     print(cv)
 
     # running through ridge regression 
-    W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins)
+    W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd)
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
@@ -1159,7 +1164,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     print("Tuning with frob: ", frob_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
-def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, rep = 0, time = False):
+def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, rep = 0, time = False):
     """
     Takes in two tensors and processes them to get the tuning ratio. 
 
@@ -1183,7 +1188,7 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, rep = 0,
     
     for i in range(rep + 1): 
         # computing W 
-        W1, _, _, _, _ = r_regress(N_tilde_move, M_tilde, num_bins = time_bins)
+        W1, _, _, _, _ = r_regress(N_tilde_move, M_tilde, num_bins = time_bins, J = J, PMd = PMd)
         U, S_val, V = np.linalg.svd(W1, full_matrices = True)
         S_val = np.diag(S_val)
         rank = int(dims/2)
@@ -1270,7 +1275,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dim, time_bins, rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dim, time_bins, rep, J = J, PMd = PMd)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
@@ -1363,7 +1368,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
     # recovering the W_potent and W_null 
-    W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, time = True)
+    W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, J = J, PMd = PMd, time_bins = time_bins, time = True)
     
     # projecting the expanded range onto the PCs recovered from the normal range 
     N_tilde_full = N_full @ PCs
