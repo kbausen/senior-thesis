@@ -444,7 +444,6 @@ def best_lam(neu_lam, mus_lam, time_bins):
     min_mse = mse_vals[best_idx]
     min_rmse = rmse_vals[best_idx]
 
-    print(">>> best_lam returning:", best_lambda)
     # Return the best lambda and its corresponding MSE 
     return best_lambda, mse_vals, rmse_vals
 
@@ -542,6 +541,8 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
         lam, _, _  = best_lam(N_tilde, M_tilde, num_bins)
     else: 
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
+    
+    print(">>> best_lam returning:", lam)
 
     # setting up for regression
     neu_train_cov = neu_train_mat.T @ neu_train_mat
@@ -1275,7 +1276,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dim, time_bins, rep, J = J, PMd = PMd)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dim, time_bins, rep = rep, J = J, PMd = PMd)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
