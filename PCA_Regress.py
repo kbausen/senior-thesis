@@ -1044,22 +1044,22 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
     null_frac = []
     pot_frac = []
    
+    # computing W
+    W1,  _, _, _, _ = r_regress(N_tilde_move, M_tilde, num_bins = time_bins, J = J, PMd = PMd)
+    U, S_val, V = np.linalg.svd(W1, full_matrices = True)
+    S_val = np.diag(S_val)
+    rank = int(dims/2)
+
+    # potent and null space basis of W
+    W_potent = U[:,:rank]
+    W_null = U[:,rank:]
+
+    if time:
+        gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
+        return W_potent, W_null, gamma
+
+
     for i in range(rep + 1):
-        # computing W
-        W1,  _, _, _, _ = r_regress(N_tilde_move, M_tilde, num_bins = time_bins, J = J, PMd = PMd)
-        U, S_val, V = np.linalg.svd(W1, full_matrices = True)
-        S_val = np.diag(S_val)
-        rank = int(dims/2)
-        print(f"U matrix shape {U.shape}")
-        print(f"V matrix shape {V.shape}")
-
-        # potent and null space basis of W
-        W_potent = U[:,:rank]
-        W_null = U[:,rank:]
-
-        if time:
-            gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
-            return W_potent, W_null, gamma
         var_tuning_i, frob_tuning_i, null_frac_i, pot_frac_i = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, cond = cond)
         var_tuning.append(var_tuning_i)
         frob_tuning.append(frob_tuning_i)
