@@ -197,27 +197,27 @@ def amt_var (matrix, rank):
 
     print(f'{frac}% variance explained')
 
-def run_PCA (matrix, rank):
+def run_PCA (matrix, rank): 
     """ 
-    This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
-    before). It will then perform a rank k approximation using the specified rank and return the projected data. 
-
+    This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will 
+    compute singular value decomposition (use shape_matrix () before). It will then perform a 
+    rank k approximation using the specified rank and return the projected data. 
+    
     Parameters: 
-        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons]
+        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons] 
         rank: the specified amount of the dimensions that the data should be projected onto 
-        
-    Returns:
-        proj: the projected rank k approximation of the dataset
-        U[:,:rank]: the left singular vectors used to create the approximation 
-    """
-    matrix = matrix - np.mean(matrix, axis=0, keepdims=True)
-    C_2 = matrix.T @ matrix
-    C_2 = C_2 / matrix.shape[0]
+    
+    Returns: 
+    proj: the projected rank k approximation of the dataset 
+    U[:,:rank]: the left singular vectors used to create the approximation """
+    matrix = matrix - np.mean(matrix) 
+    C_2 = matrix.T @ matrix 
+    C_2 = C_2 / matrix.shape[0] 
+    
     # runs PCA 
-    U, S_, V_T = svd(C_2)
-
-    # project the mean centered data onto these PCs to produce a rank k approximation
-    proj = matrix @ U[:, :rank]
+    U, S_, V_T = svd(C_2) 
+    # project the mean centered data onto these PCs to produce a rank k approximation 
+    proj = matrix @ U[:, :rank] 
     
     return proj, U[:, :rank]
 
