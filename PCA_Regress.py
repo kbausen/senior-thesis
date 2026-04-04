@@ -1116,12 +1116,12 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     """
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
-    N_null_move = N_null_move - N_null_move.mean(axis=0, keepdims=True)    # movement centering
+    # N_null_move = N_null_move - N_null_move.mean(axis=0, keepdims=True)    # movement centering
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
-    N_pot_move  = N_pot_move  - N_pot_move.mean(axis=0, keepdims=True)     # movement centering
+    # N_pot_move  = N_pot_move  - N_pot_move.mean(axis=0, keepdims=True)     # movement centering
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
     
