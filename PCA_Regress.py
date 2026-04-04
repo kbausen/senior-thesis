@@ -542,7 +542,6 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     else: 
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
     
-    print(">>> best_lam returning:", lam)
 
     # setting up for regression
     neu_train_cov = neu_train_mat.T @ neu_train_mat
@@ -553,6 +552,8 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     
     elif not J and PMd: 
         lam = 58.780160722749116
+
+    print(">>> best_lam returning:", lam)
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
     W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
 
