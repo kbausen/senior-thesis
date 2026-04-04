@@ -16,10 +16,6 @@ from brokenaxes import brokenaxes
 from matplotlib.gridspec import GridSpec
 
 
-
-
-
-
 def shape_matrix (tensor):
     """
     This function takes in the interpPSTH array and will reshape it from [conditions, neurons, time bins] to a 2D matrix [conditions x timebins, neurons]
@@ -107,8 +103,6 @@ def ident (tensor_N):
     return J, PMd
 
 
-
-
 def svd (matrix, plot = False):
     """
      This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
@@ -158,79 +152,6 @@ def svd (matrix, plot = False):
     return U, S_, V_T
 
 
-def frac_var (matrix, ideal_var, plot = False):
-    """
-    This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] (use shape_matrix ()before). It will then call svd() to compute the
-    singular values. Next it will compute how many PCs are needed to acquire the variance the user has input (value between 0 and 1). It will plot
-    a graph of the cumulative singular values if requested, and print out how many PCs are needed for the requested variance.  
-
-
-    Parameters:
-        matrix: must be an interpPSTH array which has the shape [conditions x timebins, neurons]
-        ideal_var: can be any number between 0 and 1, representing the amount of variation the user would like the PCs to capture from the data
-        plot: must be either True or False value. True will result in a plot formed to show the cumulative variance for singular values.
-
-
-    """
-    # the ideal_var should be passed over as a value between 0 and 1
-
-
-    _,S_,_ = svd(matrix)
-
-
-   
-    # initializing variables for the for loop
-    total_var = np.sum(S_)
-    frac = []
-    current_var = 0
-
-
-    # fills frac with the cumulative variance when using the singular values including that index (index i contains the cumulative variance for the
-    # :i singular values
-    for i in range(len(S_)):
-        current_var += S_[i]
-        frac.append(current_var/total_var)
-
-
-    # this will identify how many PCs would be needed to capture the preferred variance
-    for k in range (len(S_)):
-        if frac[k] >ideal_var:
-            print("index for ideal variance is ", k)
-            break
-   
-
-
-    # will produce a plot for the cumulative variance
-    if plot:
-        plt.plot([k for k in range(0,len(S_))], frac, linestyle = ' ', marker = 'o')
-        plt.axvline(x=k, color='r', linestyle='-', label=f'{ideal_var}% variance explained')
-        plt.xlabel('kth PC')
-        plt.ylabel('cum fraction of kth PC')
-        plt.ylim(0,1)
-        plt.legend()
-        if matrix.shape[1] == 202:
-            plt.title('All Neurons Principal Components Cumulative Fractional Variance')
-        elif matrix.shape[1] == 98:
-            plt.title('PMd Principal Components Cumulative Fractional Variance')
-        elif matrix.shape[1] == 104:
-            plt.title('M1 Principal Components Cumulative Fractional Variance')
-       
-        plt.show()
-
-
-def amt_var (matrix, rank):
-    _,S_,_ = svd(matrix)
-   
-     # initializing variables
-    total_var = np.sum(S_)
-    current_var = np.sum(S_[:rank])
-    frac = current_var / total_var
-   
-
-
-    print(f'{frac}% variance explained')
-
-
 def run_PCA (matrix, rank):
     """
     This function takes in the interpPSTH 2D matrix [conditions x timebins, neurons] and will compute singular value decomposition (use shape_matrix ()
@@ -250,125 +171,10 @@ def run_PCA (matrix, rank):
     # runs PCA
     U, S_, V_T = svd(C_2)
 
-
     # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ U[:, :rank]
    
     return proj, U[:, :rank]
-
-
-   
-def plot_PSTH (matrix, start_time = 0, cond = 1, approximation = False, reconstruction = 0, start_PC = 1, ax = None, regression = 0):
-    """
-    This function takes in the interpPSTH 2D matrix [timebins, neurons] and will plot the PSTH
-
-
-    Parameters:
-        matrix: must be an interpPSTH array which has the shape [timebins, neurons]
-        start_time: the beginning time of the data passed through in ms
-        cond: which condition is being plotted
-        approximation: whether it's a reduced-rank PSTH
-        reconstruction: int, used to label reconstructions
-        start_PC: first principal component number for labels
-        ax: matplotlib.axes.Axes object (optional)
-    """
-    if ax is None:
-        fig, ax = plt.subplots()
-   
-    # forms the time bins
-    num_times = matrix.shape[0]
-    times = np.arange(start_time, num_times * 10 + start_time, 10)
-
-
-   
-     # Plot data
-    if approximation:
-        ax.set_title(f"Reduced Rank PSTH of M1 Reach {cond}")
-        for i in range(matrix.shape[1]):
-            ax.plot(times, matrix[:, i], label=f"PC {start_PC}")
-            start_PC += 1
-        if matrix.shape[1] < 7:
-            ax.legend()
-    else:
-        ax.set_title(f"Original PSTH of Reach {cond}")
-        for i in range(matrix.shape[1]):
-            ax.plot(times, matrix[:, i])
-
-
-    if reconstruction > 0:
-        ax.set_title(f"{reconstruction} Dim Reconstruction of PSTH Reach {cond}")
-
-
-    if regression > 0:
-        ax.set_title(f" Ridge Regression {regression} Dim Reconstruction Reach {cond}")
-
-
-    # Vertical lines for cues
-    cues = [400, 1200, 1550]
-    labels = ['target on', 'go cue', 'movement start']
-    colors = ['r', 'g', 'y']
-    for xval, label, color in zip(cues, labels, colors):
-        ax.axvline(x=xval, color=color, linestyle='--')
-        ax.text(xval + 1, ax.get_ylim()[0] * 0.96, label,
-                rotation=0, verticalalignment='center',
-                color=color, fontweight='bold')
-
-
-   
-    ax.set_xlabel('time (ms)')
-    ax.set_xlim(start_time, times[-1])
-    ax.set_ylabel('spikes per second')
-    if (np.max(matrix) < 1.1):
-        ax.set_ylabel('scaled spikes per second')
-    ax.grid(True)
-   
-def projections(matrix, dimensions):
-    _, left_vec = run_PCA(matrix, dimensions)
-   
-    # matrix_cent = matrix - np.mean(matrix, axis=0)
-    dim1 = matrix @ left_vec[:, 0]
-    rows = int(np.ceil(dimensions / 2))
-
-
-    fig, axs = plt.subplots(2, rows, figsize=(12, 6))
-    axs = axs.flatten()
-
-
-    # Set up a single set of labels and line handles for the legend
-
-
-    legend_lines = []
-    legend_labels = ['Start', 'Other', 'Preparatory', 'Movement']
-
-
-    for i in range(dimensions - 1):
-        dim_temp = matrix @ left_vec[:, i + 1]
-
-
-        axs[i].plot(dim_temp[0], dim1[0], 'o', color='red', markersize=8, label='Start')
-        axs[i].plot(dim_temp[1:30], dim1[1:30], '-', color='blue', label='Other')
-        axs[i].plot(dim_temp[30:70], dim1[30:70], '-', color='orange', label='Preparatory')
-        axs[i].plot(dim_temp[70:135], dim1[70:135], '-', color='blue', label='Other')
-        axs[i].plot(dim_temp[135:215], dim1[135:215], '-', color='green', label='Movement')
-        axs[i].plot(dim_temp[215:236], dim1[215:236], '-', color='blue', label='Other')
-
-
-        axs[i].set_xlabel(f"Dimension {i + 2}")
-        axs[i].set_ylabel("Dimension 1")
-
-
-    plt.tight_layout()
-    plt.show()
-   
-
-
-def neu_recon (matrix, dimensions):
-    _,left_vec = run_PCA(matrix, dimensions)
-    mean_sub = matrix - np.mean(matrix, axis = 0)
-
-
-    recon = mean_sub @ left_vec @ left_vec.T
-    return recon
 
 
 def mse_fun(true_values, predicted_values):
@@ -882,8 +688,6 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     plt.show()
 
 
-
-
 def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is
@@ -976,24 +780,6 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     N_move_scale = scaling(N_move, scale)
     M_move_scale = scaling(M_move, scale)
 
-
-    # if mean_c and scale:
-    #     N_cut_mc = N_cut_scale - np.mean(N_cut_scale, axis = 0)
-    #     N_move_mc = N_move_scale - np.mean(N_move_scale, axis = 0)
-    #     M_move_mc = M_move_scale - np.mean(M_move_scale, axis = 0)
-    # elif mean_c:
-    #     N_cut_mc = N_cut_matrix - np.mean(N_cut_matrix, axis = 0)
-    #     N_move_mc = N_move_matrix - np.mean(N_move_matrix, axis = 0)
-    #     M_move_mc = M_move_matrix - np.mean(M_move_matrix, axis = 0)
-   
-    # in case want back in tensor form for mean centered and scaled
-    # if tensors:
-    #     N_adj_tensor = shape_tensor(N_cut_mc)
-    #     N_move_tensor = shape_tensor(N_move_mc)
-    #     M_adj_tensor = shape_tensor(M_move_mc)
-    #     return N_adj_tensor, N_move_tensor, M_adj_tensor
-
-
     return N_cut_scale, N_move_scale, M_move_scale
 
 
@@ -1032,9 +818,6 @@ def time_cut (tensor):
     # scaling and mean centering it into a matrix
     N_scale = scaling(N_tens, False)
     N_m_scale = scaling (N_m_tens, False)
-    # N_mean_scaled = N_scale - np.mean(N_scale, axis = 0)
-    # N_m_mean_scaled = N_m_scale - np.mean(N_m_scale, axis = 0)
-
 
     return N_scale, N_m_scale
 
@@ -1420,16 +1203,13 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         null_frac_means: an array which has values for the proportion of preparatory activity occupying the null space (1 value for each set of dimensions)
         pot_frac_means: an array which has values for the proportion of preparatory activity occupying the potent space (1 value for each set of dimensions)
     """
-
-
+    
     # making sure this is the correct type of object for the for loop
     if type(dims) == int:
         dims = np.array([dims])
 
-
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
-
 
     # initializing arrays to hold the average values for each set of dimensions
     var_tuning_means = []
@@ -1437,44 +1217,35 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     null_frac_means = []
     pot_frac_means = []
 
-
     # setting up needed shape specifics
     cond, _, _ = tensor_N.shape
-
 
     for dim in dims:
         regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
         N_tilde, _ = run_PCA(regress_N, dim)
         M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
-
         # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement
         time_ct = regress_M.shape [0]
         time_ct_neu = regress_N.shape [0]
 
-
         # how many time bins are included in the movement period for a single condition
         time_bins = int(time_ct / cond)
-
 
         # how many time bins are included in the preparatory and movement period per condition
         time_bins_pm = int(time_ct_neu / cond)
 
-
         # difference in bins = just prep bins ie where the movement period starts for each condition
         diff_bin = int((time_bins_pm - time_bins))
-
 
         # isolating the preparatory and movement bins
         N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
         N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
         N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
-
         # reshape into matrices for tuning computation
         N_tilde_move = shape_matrix(N_tilde_tens_move)
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
-
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
         var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
@@ -1557,33 +1328,26 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     N_tilde, PCs = run_PCA(regress_N, dims)
     M_tilde, _ = run_PCA(regress_M, int(dims/2))
 
-
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
-
 
     # how many time bins are included in the movement period
     time_bins = int(time_ct / cond)
 
-
     # how many time bins are included in the preparatory and movement period
     time_bins_pm = int(time_ct_neu / cond)
 
-
     # difference in bins = just prep bins
     diff_bin = int((time_bins_pm - time_bins))
-
 
     # isolating the preparatory and movement bins
     N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
     N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
     N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
-
     # reshape into matrices for tuning computation
     N_tilde_move = shape_matrix(N_tilde_tens_move)
     N_tilde_prep = shape_matrix(N_tilde_tens_prep)
-
 
     # recovering the W_potent and W_null
     W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, J = J, PMd = PMd, time = True)
@@ -1591,22 +1355,18 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # projecting the expanded range onto the PCs recovered from the normal range
     N_tilde_full = N_full @ PCs
 
-
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
     N_potent = N_tilde_full @ W_potent
     N_null = N_tilde_full @ W_null
-
 
     # reshaping into a tensor
     pot_tensor = shape_tensor(N_potent, cond)
     null_tensor = shape_tensor(N_null, cond)
     _, _, time = pot_tensor.shape
 
-
     # initializing array for holding the variance
     V_pot = np.zeros(time)
     V_null = np.zeros(time)
-
 
     # goes through all time steps and pulls all conditions
     for t in range (time):
@@ -1617,19 +1377,12 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_null = X_null - X_null.mean(axis=0, keepdims=True)
         X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
-
-
-
         V_null[t] = np.sum(np.var(X_null, axis=0))
         V_pot[t]  = np.sum(np.var(X_pot, axis=0))
-
-
        
         # # squaring and adding values and dividing by condition numbers to compute variance
         # V_null[t] = np.sum(X_null**2) / (cond * dims)
         # V_pot[t]  = np.sum(X_pot**2)  / (cond * dims)
-
-
    
     V_null = (1/gamma) * V_null
     # V_pot = (1/gamma) * V_pot
@@ -1638,12 +1391,12 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     fig = plt.figure
     gs = GridSpec(1, 1, figure=fig)
 
-
     # time for plotting x axis and indexes needed for correct slicing
     prep_time = np.arange(0, 810, 10)
     prep_idx = np.arange(81)
     move_idx_start = len(prep_idx)
     move_end_4D = move_idx_start + 30
+
     if fig_4D:
         max = np.max(np.abs(np.concatenate([V_null[:move_end_4D], V_pot[:move_end_4D]])))
     else:
@@ -1663,7 +1416,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             bax1 = brokenaxes(xlims=((0, 800), (1250, 2170)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0])
             move_time = np.arange(1250, 2160, 10)
        
-       
     else:
         J_text = "N"
         if fig_4D:
@@ -1677,8 +1429,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((0, max + .2),), hspace=.05, subplot_spec=gs[0])
             move_time = np.arange(1170, 2080, 10)
            
-
-
     if fig_4D:
         # plotting data
         move_end = move_idx_start + 30
@@ -1692,7 +1442,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         bax1.plot(move_time, V_null[move_idx_start:], '-', color='midnightblue',  linewidth = 1)
         bax1.plot(prep_time, V_pot[prep_idx], '-', color='darkmagenta', label = 'potent',  linewidth = 1)
         bax1.plot(move_time, V_pot[move_idx_start:], '-', color='darkmagenta',  linewidth = 1)
-
 
     if J:
         # preparatory ticks
@@ -1718,7 +1467,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             # movement ticks
             bax1.axs[1].set_xticks([1170, 1470, 2090])
             bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
-
 
     # sets titles and legend  
     bax1.set_ylabel("Variance")
