@@ -210,7 +210,7 @@ def run_PCA (matrix, rank):
         proj: the projected rank k approximation of the dataset
         U[:,:rank]: the left singular vectors used to create the approximation 
     """
-    matrix = matrix - np.mean(matrix)
+    matrix = matrix - np.mean(matrix, axis=0, keepdims=True)
     C_2 = matrix.T @ matrix
     C_2 = C_2 / matrix.shape[0]
     # runs PCA 
@@ -578,7 +578,7 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     
     return W, R2_total, R2_dims, MSE_all, RMSE_all
     
-def scaling (tensor, tuning = False):
+def scaling (tensor, z_score = False):
     """
     Takes in a tensor of shape [conditions, neurons, time bins] and scales it between 0 and 1. Then returns a tall and skinny 2D matrix of 
     shape [conditions x time bins, neurons]. 
@@ -592,7 +592,7 @@ def scaling (tensor, tuning = False):
     """
     check = tensor.shape[0]
 
-    if tuning: 
+    if z_score: 
 
         """
         Full preprocessing:
@@ -1117,14 +1117,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma 
     N_null_move = neu_move @ W_null 
     N_nm_tensor = shape_tensor(N_null_move, cond)
-    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out 
+    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out 
     N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     N_pm_tensor = shape_tensor(N_pot_move, cond)
-    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out 
+    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out 
     N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
@@ -1398,8 +1398,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
 
-        V_null[t] = np.sum(np.var(X_null, axis=0))
-        V_pot[t]  = np.sum(np.var(X_pot, axis=0)) 
+        V_null[t] = np.sum(np.var(X_null, axis=0, ddof=1))
+        V_pot[t]  = np.sum(np.var(X_null, axis=0, ddof=1)) 
 
         
         # # squaring and adding values and dividing by condition numbers to compute variance
