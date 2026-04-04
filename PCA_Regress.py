@@ -31,7 +31,6 @@ def shape_matrix (tensor):
     conditions, neurons, time_bins = tensor.shape
     new_mat = np.zeros((conditions * time_bins, neurons))
 
-
     # reshapes the tensor to insert all time bins for one condition for each neuron, then moves onto the next condition
     for i in range(conditions):
         new_mat[i*time_bins:(i+1)*time_bins, :] = tensor[i,:,:].T
@@ -46,7 +45,7 @@ def shape_tensor (matrix, conditions, time_bins = None):
     Parameters:
         array: must be an interpPSTH array which has the shape [conditions, neurons, time bins]
 
-
+        
     Returns:
         new_mat: reshaped the array into a 2 dimension matrix [conditions x timebins, neurons]--making it a tall and skinny array for SVD
     """
@@ -56,9 +55,7 @@ def shape_tensor (matrix, conditions, time_bins = None):
     if time_bins == None:
         time_bins = int(time_cond/conditions)
 
-
     new_tensor = np.zeros((conditions, neurons, time_bins))
-
 
     for i in range(conditions):
         low_t = i * time_bins
@@ -80,7 +77,6 @@ def ident (tensor_N):
         J: boolean which specifies if this is dataset J or not
         PMd: boolean which specifies if this is a PMd tensor or includes all neurons
     """
-
 
     # identifying dataset N or J to ensure correct time splits and titles
     cond, neu, fin_tim = tensor_N.shape
@@ -123,13 +119,10 @@ def svd (matrix, plot = False):
     # Computing the covariance
     # C_2 = np.cov(matrix.T)
 
-
     # Running SVD on the covariance matrix
     U,S_,V_T = np.linalg.svd(matrix, full_matrices=False)
     s_tot = np.sum(S_)
     frac = S_**2 / np.sum(S_**2)
-   
-
 
     # Plots the fraction of variance by PC
     if plot:
@@ -146,7 +139,6 @@ def svd (matrix, plot = False):
             plt.title('M1 Principal Components Fractional Variance')
        
         plt.show()
-
 
     # Returning the left singular vectors, singular values, and right singular vectors
     return U, S_, V_T
@@ -181,7 +173,6 @@ def mse_fun(true_values, predicted_values):
     """
     This function computes the mean squared error between the true values and the predicted values.
 
-
     Parameters:
         true_values: numpy array of true values
         predicted_values: numpy array of predicted values
@@ -212,7 +203,6 @@ def regress (train_N, train_M, lam):
    
     I = np.eye(C.shape[0])
 
-
     # compute the weights matrix
     W_hat = np.linalg.solve(C + (lam * I), train_N.T @ train_M)
    
@@ -223,18 +213,14 @@ def regress (train_N, train_M, lam):
     # per dimension
     R2_dims = 1 - np.var(train_M - M_hat, axis=0) / np.var(train_M, axis=0)
 
-
     # overall
     R2_total = 1 - np.sum((train_M - M_hat)**2) / np.sum((train_M - train_M.mean(axis=0))**2)
-
 
     # MSE
     MSE_lam = mse_fun(train_M, M_hat)
 
-
     # RMSE
     RMSE_lam = np.sqrt(MSE_lam)
-
 
     return W_hat, M_hat, R2_total, RMSE_lam, MSE_lam
 
@@ -261,12 +247,10 @@ def best_lam(neu_lam, mus_lam, time_bins):
 
     """
 
-
     # shape data into a tensor
     conds = int(neu_lam.shape[0] / time_bins)
     neu_tensor = shape_tensor(neu_lam, conds)
     mus_tensor = shape_tensor(mus_lam, conds)
-
 
     # set up folds and random conditions
     K = min(5, conds)
@@ -274,58 +258,44 @@ def best_lam(neu_lam, mus_lam, time_bins):
     np.random.shuffle(cond_idx)
     folds = np.array_split(cond_idx, K)
 
-
     # Define a range of lambda values to test and initialize arrays
     lambdas = np.logspace(-4, 5, 40)
     mse_vals = []
     rmse_vals = []
 
-
     for lam in lambdas:
-
 
         fold_mse = []
 
-
         for k in range(K):
-
 
             val_idx = folds[k]
             train_idx = np.hstack([folds[i] for i in range(K) if i != k])
-
 
             #take training data out
             neu_train = shape_matrix(neu_tensor[train_idx])
             mus_train = shape_matrix(mus_tensor[train_idx])
 
-
             # take testing data out
             neu_val = shape_matrix(neu_tensor[val_idx])
             mus_val = shape_matrix(mus_tensor[val_idx])
 
-
             # recover W_hat
             W_hat, _, _, _, _ = regress(neu_train, mus_train, lam)
-
 
             # create estimation for test values and recover MSE
             mus_pred = neu_val @ W_hat
             mse = np.mean((mus_val - mus_pred)**2)
 
-
             fold_mse.append(mse)
 
-
         mean_mse = np.mean(fold_mse)
-
 
         mse_vals.append(mean_mse)
         rmse_vals.append(np.sqrt(mean_mse))
 
-
     #Identifying the best lambda
     best_idx = np.argmin(mse_vals)
-
 
     best_lambda = lambdas[best_idx]
     min_mse = mse_vals[best_idx]
@@ -351,19 +321,15 @@ def simple_lam(N_train, M_train):
         cv_results: the stored mean squared error for all tested lambdas
     """
 
-
      # Define a range of lambda values to test
     lambdas = np.logspace(-3, 3, 25)
-
 
     # Initialize the RidgeCV model with the lambda values, this will minimize MSE, and is data centered
     model_cv = RidgeCV(alphas=lambdas, scoring='neg_mean_squared_error', store_cv_results=True, fit_intercept = False)
 
-
     # Fit the model (the optimal alpha is found automatically during this step)
     model_cv.fit(N_train, M_train)
     cv_results = model_cv.cv_results_
-
 
     # The optimal alpha value can be accessed via the alpha_ attribute
     best_lambda = model_cv.alpha_
@@ -401,17 +367,14 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     all_idx = np.arange(conds)
     np.random.shuffle(all_idx)
 
-
     # calculate the sizes of each set
     split = int((conds * 0.2))    # 20% for testing
     train_idx = all_idx[split:]
     test_idx = all_idx[:split]
 
-
     # shaping back into a tensor
     neu_tensor = shape_tensor(N_tilde, conds)
     mus_tensor = shape_tensor(M_tilde, conds)
-
 
     # isolating the data as they've been split above        
     neu_test_tens = neu_tensor[test_idx, :, :]        # 20% for testing
@@ -419,13 +382,11 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     neu_train_tens = neu_tensor[train_idx, :, :]      # 80% for training
     mus_train_tens = mus_tensor[train_idx, :, :]      # 80% for training
 
-
     # reshaping into matrix        
     neu_test_mat = shape_matrix(neu_test_tens)        
     mus_test_mat = shape_matrix(mus_test_tens)        
     neu_train_mat = shape_matrix(neu_train_tens)      
     mus_train_mat = shape_matrix(mus_train_tens)
-
 
     # mean centering
     # neu_train_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
@@ -433,18 +394,15 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
     # mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
-
     # Calling best lambda
     if cv:
         lam, _, _ = best_lam(neu_train_mat, mus_train_mat, num_bins)
     else:
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
 
-
     # setting up for regression
     neu_train_cov = neu_train_mat.T @ neu_train_mat
     I = np.identity(neu_train_cov.shape[0])
-
 
     if J and not PMd:
         lam = 100
@@ -456,16 +414,13 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
     W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
 
-
     # calculating the M_hat by multiplying neu_test_mat and W from above
     M_test_hat = neu_test_mat @ W
     M_hat = N_tilde @ W
 
-
     # calculating R squared for each column of M_tilde
     # per dimension
     R2_dims = 1 - np.var(M_tilde - M_hat, axis=0) / np.var(M_tilde, axis=0)
-
 
     # overall
     R2_total = 1 - np.sum((M_tilde - M_hat)**2) / np.sum((M_tilde - M_tilde.mean(axis=0))**2)
@@ -473,7 +428,6 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # calcualting mean squared error of the reconstruction of mus_test_mat with the multiplication of neu_test_mat and W
     MSE_test = mse_fun(mus_test_mat, M_test_hat)
     RMSE_test = np.sqrt(MSE_test)
-
 
     # RMSE and MSE for whole dataset
     MSE_all = mse_fun(M_tilde, M_hat)
@@ -497,9 +451,7 @@ def scaling (tensor, tuning = False):
     """
     check = tensor.shape[0]
 
-
     if tuning:
-
 
         """
         Full preprocessing:
@@ -520,37 +472,30 @@ def scaling (tensor, tuning = False):
         # reshape into matrix
         matrix = shape_matrix(tensor)
 
-
         return matrix
    
     else:
-
 
         if check < 300:
             new_matrix = shape_matrix(tensor)
         else:
             new_matrix = tensor
 
-
         # trying other form of scaling
         stand = np.std(new_matrix, axis = 0)
-
 
         standardized = np.zeros_like(new_matrix)
         norm_matrix = np.zeros_like(new_matrix)
 
-
         # columns max and min
         col_max = np.amax(new_matrix, axis = 0)
         col_min = np.amin(new_matrix, axis = 0)
-
 
         # Z-scoring
         mean = np.mean(new_matrix, axis=0)
         std = np.std(new_matrix, axis=0)
         std[std == 0] = 1
         standardized = (new_matrix - mean) / std
-
 
         for i in range(norm_matrix.shape[1]):
             norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
@@ -571,21 +516,16 @@ def fig_3_cut_t(tensor, dimensions):
     # retrieving dataset specifications
     J, _ = ident(tensor)
 
-
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
     conditions, _, _ = tensor.shape
     new_bins = int(N_matrix.shape[0] / conditions)
 
-
     # gathering the left vectors and projecting the N_matrix onto them
     proj, _ = run_PCA(N_matrix, dimensions)
    
-
-
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, new_bins)
-
 
     # starting the figures
     fig, axs = plt.subplots(dimensions - 1, dimensions -1, figsize=(12, 6))
@@ -615,8 +555,6 @@ def fig_3_cut_t(tensor, dimensions):
                         axs[c].set_ylabel(f"Dimension {k + 1}")
                
                 c +=1
-
-
              
     plt.tight_layout()
     plt.show()
@@ -640,12 +578,10 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         # retrieving dataset specifications
     J, _ = ident(tensor)
 
-
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
     conditions, _, _ = tensor.shape
     new_bins = int(N_matrix.shape[0] / conditions)
-
 
     # gathering the left vectors and projecting the N_matrix onto them
     proj, _ = run_PCA(N_matrix, dimensions)
@@ -658,7 +594,6 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         current_cond = np.squeeze(current_cond)
         dim1 = current_cond[d1, :]
         dim2 = current_cond[d2, :]
-
 
         if i == 0:
             plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
@@ -674,10 +609,10 @@ def fig_3_spec(tensor, dimensions, d1, d2):
 
     plt.xlabel(f"Dimension {d1 + 1}")
     plt.ylabel(f"Dimension {d2 + 1}")
+
     if J:
         plt.legend(loc = 3)
         plt.title("Monkey J Neural Projection")
-
 
     else:
         plt.legend(loc = 2)
@@ -727,10 +662,8 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     N_prep_start = 30
     N_prep_end = 81     # 81 because it will get spliced off otherwise
 
-
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
-
 
     # altering movement periods depending on dataset
     if J:
@@ -754,10 +687,8 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
     N_cut = tensor_N[:,:, N_idx]
 
-
     # isolates movement data needed for the regression to find W tilde and tuning
     N_move = tensor_N[:,:, N_move_start:N_move_end]
-
 
     # cutting the M tensor with the times in movement period, depending on if it maps to muscles or not
     if PMd:
@@ -769,13 +700,7 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     M_idx = np.r_[M_move_start:M_move_end]
     M_move = tensor_M[:,:, M_idx]
    
-    # shaping it into a matrix in case not scaling
-    N_cut_matrix = shape_matrix(N_cut)
-    N_move_matrix = shape_matrix(N_move)
-    M_move_matrix = shape_matrix(M_move)
    
-
-
     N_cut_scale = scaling(N_cut, scale)
     N_move_scale = scaling(N_move, scale)
     M_move_scale = scaling(M_move, scale)
@@ -797,10 +722,8 @@ def time_cut (tensor):
         N_m_mean_scaled: 2D inter_PSTH matrix with only time bins during movement that has been scaled and centered
     """
 
-
     # retrieving dataset specifications
     J, _ = ident(tensor)
-
 
     # altering movement periods depending on dataset and getting indexes for time cuts (includes go cue needed in figure 3)
     if J:
@@ -813,7 +736,6 @@ def time_cut (tensor):
     # splicing data
     N_tens = tensor[:,:, N_idx]
     N_m_tens = tensor[:,:, N_move]
-
 
     # scaling and mean centering it into a matrix
     N_scale = scaling(N_tens, False)
@@ -845,33 +767,26 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         MSE: The mean squared error of M_hat in comparison to M_tilde
     """
 
-
     # retrieving number of conditions
     cond = tensor_N.shape[0]
 
-
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
-
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
 
-
     # retrieving data projected onto the first N_dim and M_dim PCs
     N_tilde,N_PCs = run_PCA(regress_N, dimensions)
     M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
 
-
     # how many time bins are included in the movement period
     time_bins = int(time_ct / cond)
 
-
     # how many time bins are included in the preparatory and movement period
     time_bins_pm = int(time_ct_neu / cond)
-
 
     # difference in bins = prep bins
     diff_bin = int((time_bins_pm - time_bins))
@@ -881,10 +796,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     N_tens_spliced = regress_N[:,:, diff_bin:]
     regress_N_sp = shape_matrix(N_tens_spliced)
 
-
     # running through ridge regression
     W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd, cv = cv)
-
 
     if plot:
         regress_N, _,_ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
@@ -917,11 +830,9 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     S_val = np.diag(S_val)
     rank = int(dimensions/2)
 
-
     # potent and null space basis of W
     W_potent = U[:,:rank]
     W_null = U[:,rank:]
-
 
     # low rank neural data projected onto null and potent space of weights and scaling them
     N_potent =  N_tilde @ W_potent
@@ -929,7 +840,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     max = np.max(np.abs(np.concatenate([N_potent, N_null])))
     N_potent /= max
     N_null /=  max
-
 
     # setting up time for x axis
     prep_time = np.arange(0, 810, 10)
@@ -941,10 +851,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     # setting up for loop
     time_bins = int(N_potent.shape[0] / cond)
 
-
     fig = plt.figure(figsize=(8, 10))
     gs = GridSpec(2, 1, figure=fig)
-
 
     # different limits on the axes depending on which dataset was given
     if J:
@@ -962,12 +870,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     bax1.set_xlabel("Time in Trial")
     bax1.set_ylabel("Projection (a.u.)")
  
-
-
     y_line = -1.2  # slightly above lower y-limit
 
-
-   
     # 300–800 (blue) for preparatory activity
     bax1.plot([300, 800], [y_line, y_line],
             color='blue', linewidth=4, solid_capstyle='butt')
@@ -980,8 +884,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax2.plot([1500, 2170], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
        
-
-
     else:
             # 1420–2080 (green) for regression epoch
         bax1.plot([1420, 2080], [y_line, y_line],
@@ -989,13 +891,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax2.plot([1420, 2080], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
 
-
     # plotting the data for output null space
     for i in range(cond):
         start_prep = i* time_bins
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
-
 
         if i == 0:
             bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue', label = 'null',  linewidth = .5)
@@ -1018,7 +918,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         end_prep = start_prep + len(prep_time)
         end_move = end_prep + len(move_time)
 
-
         if i == 0:
             bax2.plot(prep_time, N_potent[start_prep:end_prep, basis_2], '-', color='darkmagenta', label = 'potent',  linewidth = .5)
             bax2.plot(move_time, N_potent[end_prep:end_move, basis_2], '-', color='darkmagenta',  linewidth = .5)
@@ -1033,7 +932,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax2.axs[0].set_xticks([0, 400, 800])
         bax2.axs[0].set_xticklabels(['-400', 'targ', '400'])
 
-
         # movement ticks
         bax1.axs[1].set_xticks([1250, 1550, 2170])
         bax1.axs[1].set_xticklabels(['-300', 'move', '600'])
@@ -1045,7 +943,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax1.axs[0].set_xticklabels(['-400', 'targ', '400'])
         bax2.axs[0].set_xticks([0, 400, 800])
         bax2.axs[0].set_xticklabels(['-400', 'targ', '400'])
-
 
         # movement ticks
         bax1.axs[1].set_xticks([1170, 1470, 2090])
@@ -1080,7 +977,6 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
-
     N_pot_move = neu_move @ W_potent
     N_pm_tensor = shape_tensor(N_pot_move, cond)
     N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out
@@ -1092,7 +988,6 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     gamma = null_move_var / pot_move_var
     gamma2 = null_move_frob / pot_move_frob
 
-
     # Null and potent projections of movement neural data
     N_null_prep = neu_prep @ W_null
     N_np_tensor = shape_tensor(N_null_prep, cond)
@@ -1101,7 +996,6 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     null_prep_frob = np.linalg.norm(N_null_prep)**2
     null_prep_var = np.sum(np.var(N_null_prep, axis=0))
 
-
     N_pot_prep = neu_prep @ W_potent
     N_pp_tensor = shape_tensor(N_pot_prep, cond)
     N_pp_tensor -= N_pp_tensor.mean(axis=0, keepdims=True)
@@ -1109,18 +1003,15 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     pot_prep_frob = np.linalg.norm(N_pot_prep)**2
     pot_prep_var = np.sum(np.var(N_pot_prep, axis=0))
 
-
     # tuning ratio
     var_tuning = (null_prep_var / pot_prep_var) * ( 1/ gamma )   # this is with using the sum of variance
     frob_tuning = (null_prep_frob / pot_prep_frob) * (1 / gamma2 )   # this is with using the frobenius norm and not variance on the movement data
-
 
     # fraction of prep in null space and potent space
     null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
     pot_fraction  = pot_prep_var  / (null_prep_var + pot_prep_var)
     if get_gamma:
         return gamma2                                                           # RETURNING GAMMA 2
-
 
     print("1/Gamma: ", 1/gamma)
     print("Tuning with frobenius norm: ", 1/gamma2)
@@ -1135,7 +1026,6 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
     """
     Takes in two tensors and processes them to get the tuning ratio.
 
-
     Parameters:
         tensor_N: tensor which has either neural data or PMd data
         tensor_M: tensor which has either muscle data or M1 data
@@ -1148,7 +1038,6 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
         frob_tuning:
     """
     cond = int(N_tilde_move.shape[0] / time_bins)
-
 
     var_tuning = []
     frob_tuning = []
@@ -1164,11 +1053,9 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
         print(f"U matrix shape {U.shape}")
         print(f"V matrix shape {V.shape}")
 
-
         # potent and null space basis of W
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
-
 
         if time:
             gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
@@ -1203,7 +1090,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         null_frac_means: an array which has values for the proportion of preparatory activity occupying the null space (1 value for each set of dimensions)
         pot_frac_means: an array which has values for the proportion of preparatory activity occupying the potent space (1 value for each set of dimensions)
     """
-    
+
     # making sure this is the correct type of object for the for loop
     if type(dims) == int:
         dims = np.array([dims])
@@ -1264,21 +1151,16 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         print(null_prop)
         print(pot_frac_means)
 
-
         x = np.arange(len(dims))           # group positions
         width = 0.35                       # bar width
 
-
         fig, ax = plt.subplots(figsize=(8, 5))
-
 
         # Null bars (all same color)
         ax.bar(x - width/2, null_prop, width, label="Null", color='midnightblue')
 
-
         # Potent bars (all same color)
         ax.bar(x + width/2, potent_prop, width, label="Potent", color='darkmagenta')
-
 
         for i in range(len(dims)):
             ax.text(
@@ -1310,16 +1192,13 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         plt.tight_layout()
         plt.show()
 
-
     else:
         return var_tuning_means, frob_tuning_means, null_frac_means, pot_frac_means
    
 def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
-
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
-
 
     # getting weights matrix for potent and null space
     cond, _, fin_time = tensor_N.shape
@@ -1482,4 +1361,3 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     bax1.set_xlabel("Time")
    
     bax1.legend(loc = 2)
-
