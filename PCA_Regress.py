@@ -371,9 +371,11 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
 
     # calculate the sizes of each set
     split = int((conds * 0.2))    # 20% for testing
-    print(train_idx)
+    
     train_idx = all_idx[split:]
     test_idx = all_idx[:split]
+
+    print(train_idx)
 
     # shaping back into a tensor
     neu_tensor = shape_tensor(N_tilde, conds)
