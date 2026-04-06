@@ -165,6 +165,8 @@ def run_PCA (matrix, rank):
 
     # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ U[:, :rank]
+
+    print(U[:,:rank])
    
     return proj, U[:, :rank]
 
