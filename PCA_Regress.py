@@ -401,7 +401,7 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
 
     # Calling best lambda
     if cv:
-        lam, _, _ = best_lam(neu_train_mat, mus_train_mat, num_bins)
+        lam, _, _ = best_lam(N_tilde, M_tilde, num_bins)
     else:
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
 
