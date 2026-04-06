@@ -409,11 +409,11 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     neu_train_cov = neu_train_mat.T @ neu_train_mat
     I = np.identity(neu_train_cov.shape[0])
 
-    if J and not PMd:
-        lam = 100
+    # if J and not PMd:
+    #     lam = 100
    
-    elif not J and PMd:
-        lam = 58.780160722749116
+    # elif not J and PMd:
+    #     lam = 58.780160722749116
     print(">>> best_lam returning:", lam)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
