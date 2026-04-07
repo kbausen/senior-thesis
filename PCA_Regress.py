@@ -255,7 +255,7 @@ def best_lam(neu_lam, mus_lam, time_bins):
     # set up folds and random conditions
     K = min(5, conds)
     cond_idx = np.arange(conds)
-    # np.random.seed(42)
+    np.random.seed(42)
     np.random.shuffle(cond_idx)
     folds = np.array_split(cond_idx, K)
 
@@ -366,7 +366,7 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
    
     # listing and shuffling all possible indexes
     all_idx = np.arange(conds)
-    # np.random.seed(42)
+    np.random.seed(42)
     np.random.shuffle(all_idx)
 
     # calculate the sizes of each set
