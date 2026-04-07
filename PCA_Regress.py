@@ -503,7 +503,7 @@ def scaling (tensor, tuning = False):
         standardized = (new_matrix - mean) / std
 
         for i in range(norm_matrix.shape[1]):
-            norm_matrix[:, i] = (new_matrix[:, i] - col_min[i]) / (col_max[i] - col_min[i])
+            norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
             norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
         return(norm_matrix)
    
