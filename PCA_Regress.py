@@ -1059,22 +1059,6 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
         W_potent = U[:,:rank]
         W_null = U[:,rank:]
 
-        # Project movement data
-        N_pot_move_proj = N_tilde_move @ W_potent
-        N_null_move_proj = N_tilde_move @ W_null
-
-        # Mean subtract before norm (as per methods)
-        N_pot_move_proj -= N_pot_move_proj.mean(axis=0, keepdims=True)
-        N_null_move_proj -= N_null_move_proj.mean(axis=0, keepdims=True)
-
-        pot_var  = np.linalg.norm(N_pot_move_proj)**2
-        null_var = np.linalg.norm(N_null_move_proj)**2
-
-        print("Singular values of W:", S_val)
-        print("Potent move norm^2:", pot_var)
-        print("Null move norm^2:  ", null_var)
-        print("Gamma (null/pot):", null_var / pot_var)
-
         if time:
             gamma = tuning_rat(W_potent, W_null, N_tilde_move, N_tilde_prep, get_gamma = True, cond = cond)
             return W_potent, W_null, gamma
