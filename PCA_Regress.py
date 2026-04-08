@@ -1240,6 +1240,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
     N_potent = N_tilde_full @ W_potent
     N_null = N_tilde_full @ W_null
+
+    # mean centering
     N_potent = N_potent - np.mean(N_potent, axis = 0)
     N_null = N_null - np.mean(N_null, axis = 0)
 
@@ -1261,8 +1263,12 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         # X_null = X_null - X_null.mean(axis=0, keepdims=True)
         # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
-        V_null[t] = np.sum(np.var(X_null, axis=0))
-        V_pot[t]  = np.sum(np.var(X_pot, axis=0))
+        V_null[t] = np.linalg.norm(X_null)**2 / cond
+        V_pot[t]  = np.linalg.norm(X_pot)**2 / cond
+
+
+        # V_null[t] = np.sum(np.var(X_null, axis=0))
+        # V_pot[t]  = np.sum(np.var(X_pot, axis=0))
        
         # # squaring and adding values and dividing by condition numbers to compute variance
         # V_null[t] = np.sum(X_null**2) / (cond * dims)
