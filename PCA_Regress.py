@@ -1257,8 +1257,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_null = null_tensor[:, :, t]
        
         # subtract across-condition mean
-        X_null = X_null - X_null.mean(axis=0, keepdims=True)
-        X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
+        # X_null = X_null - X_null.mean(axis=0, keepdims=True)
+        # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
         V_null[t] = np.sum(np.var(X_null, axis=0))
         V_pot[t]  = np.sum(np.var(X_pot, axis=0))
