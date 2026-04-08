@@ -977,14 +977,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma
     N_null_move = neu_move @ W_null
     N_nm_tensor = shape_tensor(N_null_move, cond)
-    # N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out
+    N_nm_tensor -= N_nm_tensor.mean(axis=0, keepdims=True)     # the other one to comment out
     N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     N_pm_tensor = shape_tensor(N_pot_move, cond)
-    # N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out
+    N_pm_tensor -= N_pm_tensor.mean(axis=0, keepdims=True)     # the one to comment out
     N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
@@ -1260,8 +1260,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         # X_null = X_null - X_null.mean(axis=0, keepdims=True)
         # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
 
-        V_null[t] = np.sum(np.var(X_null, axis=0))
-        V_pot[t]  = np.sum(np.var(X_pot, axis=0))
+        V_null[t] = np.mean(np.var(X_null, axis=0))
+        V_pot[t]  = np.mean(np.var(X_pot, axis=0))
        
         # # squaring and adding values and dividing by condition numbers to compute variance
         # V_null[t] = np.sum(X_null**2) / (cond * dims)
@@ -1271,7 +1271,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # V_pot = (1/gamma) * V_pot
    
     # initializing figure parameters
-    fig = plt.figure
+    fig = plt.figure(figsize=(10, 5))
     gs = GridSpec(1, 1, figure=fig)
 
     # time for plotting x axis and indexes needed for correct slicing
