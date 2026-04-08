@@ -1244,8 +1244,10 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # reshaping into a tensor
     pot_tensor = shape_tensor(N_potent, cond)
     null_tensor = shape_tensor(N_null, cond)
-    # pot_tensor -= pot_tensor.mean(axis=0, keepdims=True)  
-    # null_tensor -= null_tensor.mean(axis=0, keepdims=True)  
+    pot_tensor[:,:, :diff_bin] -= pot_tensor[:,:, :diff_bin].mean(axis=0, keepdims=True)  
+    pot_tensor[:,:, diff_bin:] -= pot_tensor[:,:, diff_bin:].mean(axis=0, keepdims=True) 
+    null_tensor[:,:, :diff_bin] -= null_tensor[:,:, :diff_bin].mean(axis=0, keepdims=True)
+    null_tensor[:,:, diff_bin:] -= null_tensor[:,:, diff_bin:].mean(axis=0, keepdims=True)  
 
     _, _, time = pot_tensor.shape
 
@@ -1273,7 +1275,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # V_pot = (1/gamma) * V_pot
    
     # initializing figure parameters
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure(figsize=(5, 5))
     gs = GridSpec(1, 1, figure=fig)
 
     # time for plotting x axis and indexes needed for correct slicing
