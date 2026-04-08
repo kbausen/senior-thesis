@@ -1244,6 +1244,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # reshaping into a tensor
     pot_tensor = shape_tensor(N_potent, cond)
     null_tensor = shape_tensor(N_null, cond)
+    # pot_tensor -= pot_tensor.mean(axis=0, keepdims=True)  
+    # null_tensor -= null_tensor.mean(axis=0, keepdims=True)  
+
     _, _, time = pot_tensor.shape
 
     # initializing array for holding the variance
