@@ -1053,7 +1053,6 @@ def tuning_setup (N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins, J, PMd, 
         # computing W
         W1,  _, _, _, _ = r_regress(N_tilde_move, M_tilde, num_bins = time_bins, J = J, PMd = PMd)
         U, S_val, V = np.linalg.svd(W1, full_matrices = True)
-        S_val = np.diag(S_val)
         rank = int(dims/2)
 
         # potent and null space basis of W
