@@ -1019,7 +1019,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
         return gamma2                                                           # RETURNING GAMMA 2
 
     print("1/Gamma: ", 1/gamma)
-    print("Tuning with frobenius norm: ", 1/gamma2)
+    print("1/Gamma2: ", 1/gamma2)
     print("Move null/pot:", null_move_var / pot_move_var)
     print("Prep null: ", null_prep_var)
     print("Prep potent: ", pot_prep_var)
@@ -1170,7 +1170,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
             ax.text(
             x[i],                      # center of the two bars
             max(null_prop[i], potent_prop[i]) + 0.05,  # above taller bar
-            f"{var_tuning_means[i]:.2f}",     # <-- put whatever value you want here
+            f"{frob_tuning_means[i]:.2f}",     # <-- put whatever value you want here
             ha='center',
             va='bottom',
             fontsize=9
