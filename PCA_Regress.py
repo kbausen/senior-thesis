@@ -1013,8 +1013,8 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     frob_tuning = (null_prep_frob / pot_prep_frob) * (1 / gamma2 )   # this is with using the frobenius norm and not variance on the movement data
 
     # fraction of prep in null space and potent space
-    null_fraction = null_prep_frob / (null_prep_frob + pot_prep_frob)
-    pot_fraction  = pot_prep_frob  / (null_prep_frob + pot_prep_frob)
+    null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
+    pot_fraction  = pot_prep_var / (null_prep_var + pot_prep_var)
     if get_gamma:
         return gamma                                                           # RETURNING GAMMA 2
 
@@ -1243,8 +1243,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     N_null = N_tilde_full @ W_null
 
     # mean centering
-    # N_potent = N_potent - np.mean(N_potent, axis = 0)
-    # N_null = N_null - np.mean(N_null, axis = 0)
+    N_potent = N_potent - np.mean(N_potent, axis = 0)
+    N_null = N_null - np.mean(N_null, axis = 0)
 
     # reshaping into a tensor
     pot_tensor = shape_tensor(N_potent, cond)
