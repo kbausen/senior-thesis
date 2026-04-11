@@ -1021,7 +1021,8 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     print("1/Gamma: ", 1/gamma)
     print("Tuning with frobenius norm: ", 1/gamma2)
     print("Move null/pot:", null_move_var / pot_move_var)
-    print("Prep null/pot: ", null_prep_var / pot_prep_var)
+    print("Prep null: ", null_prep_var)
+    print("Prep potent: ", pot_prep_var)
     print("Tuning with variance: ", var_tuning)
     print("Tuning with frob: ", frob_tuning)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
@@ -1242,8 +1243,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     N_null = N_tilde_full @ W_null
 
     # mean centering
-    N_potent = N_potent - np.mean(N_potent, axis = 0)
-    N_null = N_null - np.mean(N_null, axis = 0)
+    # N_potent = N_potent - np.mean(N_potent, axis = 0)
+    # N_null = N_null - np.mean(N_null, axis = 0)
 
     # reshaping into a tensor
     pot_tensor = shape_tensor(N_potent, cond)
@@ -1259,14 +1260,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         X_pot  = pot_tensor[:, :, t]
         X_null = null_tensor[:, :, t]
        
-        # subtract across-condition mean
-        # X_null = X_null - X_null.mean(axis=0, keepdims=True)
-        # X_pot  = X_pot - X_pot.mean(axis=0, keepdims=True)
-
-        # V_null[t] = np.linalg.norm(X_null)**2 / cond
-        # V_pot[t]  = np.linalg.norm(X_pot)**2 / cond
-
-
+       # variance 
         V_null[t] = np.sum(np.var(X_null, axis=0))
         V_pot[t]  = np.sum(np.var(X_pot, axis=0))
        
