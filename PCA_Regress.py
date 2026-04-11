@@ -977,14 +977,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma
     N_null_move = neu_move @ W_null
     # N_nm_tensor = shape_tensor(N_null_move, cond)
-    # N_null_move = N_null_move - N_null_move.mean(axis=0)     # the other one to comment out
+    N_null_move = N_null_move - N_null_move.mean(axis=0)     # the other one to comment out
     # N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     # N_pm_tensor = shape_tensor(N_pot_move, cond)
-    # N_pot_move = N_pot_move - N_pot_move.mean(axis=0)     # the one to comment out
+    N_pot_move = N_pot_move - N_pot_move.mean(axis=0)     # the one to comment out
     # N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
