@@ -485,17 +485,19 @@ def scaling (tensor, neu_tensor_2 = None, tuning = False):
         new_matrix = shape_matrix(tensor)
         if neu_tensor_2 is not None:
             neu_2_mat = shape_matrix(neu_tensor_2)
+            neu_2_norm  = np.zeros_like(neu_2_mat)
     else:
         new_matrix = tensor
         if neu_tensor_2 is not None:
             neu_2_mat = neu_tensor_2
+            neu_2_norm  = np.zeros_like(neu_2_mat)
 
     # trying other form of scaling
     stand = np.std(new_matrix, axis = 0)
 
     standardized = np.zeros_like(new_matrix)
     norm_matrix = np.zeros_like(new_matrix)
-    neu_2_norm  = np.zeros_like(neu_2_mat)
+    
 
     # columns max and min
     col_max = np.amax(new_matrix, axis = 0)
@@ -509,10 +511,11 @@ def scaling (tensor, neu_tensor_2 = None, tuning = False):
 
     for i in range(norm_matrix.shape[1]):
         norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
-        neu_2_norm[:, i] = (neu_2_mat[:, i]) / (col_max[i] - col_min[i])
-
         norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
-        neu_2_norm[:, i] = neu_2_norm[:, i] - np.mean(neu_2_norm[:, i])
+        
+        if neu_tensor_2 is not None:
+            neu_2_norm[:, i] = (neu_2_mat[:, i]) / (col_max[i] - col_min[i])
+            neu_2_norm[:, i] = neu_2_norm[:, i] - np.mean(neu_2_norm[:, i])
     
     if neu_tensor_2 is not None: 
         return norm_matrix, neu_2_norm
