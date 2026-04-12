@@ -1131,6 +1131,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     for dim in dims:
         regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
         N_tilde, _ = run_PCA(regress_N, dim)
+        N_move, _ = run_PCA(regress_N, dim)
         M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
         # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement
@@ -1156,7 +1157,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
@@ -1224,7 +1225,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # getting weights matrix for potent and null space
     cond, _, fin_time = tensor_N.shape
     _, N_fig4 = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
-    regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+    regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+    N_move, _ = run_PCA(N_move, dims)
     N_tilde, PCs = run_PCA(regress_N, dims)
     M_tilde, _ = run_PCA(regress_M, int(dims/2))
 
@@ -1250,7 +1252,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
     # recovering the W_potent and W_null
-    W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, J = J, PMd = PMd, time = True)
+    W_potent, W_null, gamma = tuning_setup(N_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, J = J, PMd = PMd, time = True)
    
     # projecting the expanded range onto the PCs recovered from the normal range
     N_tilde_full = N_fig4 @ PCs
