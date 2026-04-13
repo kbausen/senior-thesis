@@ -440,7 +440,7 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
    
     return W, R2_total, R2_dims, MSE_all, RMSE_all
    
-def scaling (tensor, neu_tensor_2 = None, tuning = False):
+def scaling (tensor, tuning = False):
     """
     Takes in a tensor of shape [conditions, neurons, time bins] and scales it between 0 and 1. Then returns a tall and skinny 2D matrix of
     shape [conditions x time bins, neurons].
@@ -483,14 +483,9 @@ def scaling (tensor, neu_tensor_2 = None, tuning = False):
 
     if check < 300:
         new_matrix = shape_matrix(tensor)
-        if neu_tensor_2 is not None:
-            neu_2_mat = shape_matrix(neu_tensor_2)
-            neu_2_norm  = np.zeros_like(neu_2_mat)
+    
     else:
         new_matrix = tensor
-        if neu_tensor_2 is not None:
-            neu_2_mat = neu_tensor_2
-            neu_2_norm  = np.zeros_like(neu_2_mat)
 
     # trying other form of scaling
     stand = np.std(new_matrix, axis = 0)
@@ -512,13 +507,6 @@ def scaling (tensor, neu_tensor_2 = None, tuning = False):
     for i in range(norm_matrix.shape[1]):
         norm_matrix[:, i] = (new_matrix[:, i]) / (col_max[i] - col_min[i])
         norm_matrix[:, i] = norm_matrix[:,i] - np.mean(norm_matrix[:,i])
-        
-        if neu_tensor_2 is not None:
-            neu_2_norm[:, i] = (neu_2_mat[:, i]) / (col_max[i] - col_min[i])
-            neu_2_norm[:, i] = neu_2_norm[:, i] - np.mean(neu_2_norm[:, i])
-    
-    if neu_tensor_2 is not None: 
-        return norm_matrix, neu_2_norm
     
     return(norm_matrix)
    
@@ -705,10 +693,7 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
         else:
             N_move_start = 117
             N_move_end = 208
-        N_idx_2 = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
-        N_cut_fig4 = tensor_N[:,:, N_idx_2]
-        N_cut_scale, N_fig4 = scaling(N_cut, N_cut_fig4, tuning = scale)
-        return N_cut_scale, N_fig4
+        
     
     # isolates movement data needed for the regression to find W tilde and tuning
     N_move = tensor_N[:,:, N_move_start:N_move_end]
@@ -724,7 +709,8 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     M_move = tensor_M[:,:, M_idx]
 
 
-    N_cut_scale, N_move_scale = scaling(N_cut, N_move, tuning = scale)
+    N_cut_scale = scaling(N_cut, tuning = scale)
+    N_move_scale = scaling(N_move, tuning = scale)
     M_move_scale = scaling(M_move, tuning = scale)
 
     return N_cut_scale, N_move_scale, M_move_scale
@@ -822,7 +808,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd, cv = cv)
 
     if plot:
-        regress_N, fig4_N = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        regress_N, fig4_N, _ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
         N_tilde = fig4_N @ N_PCs  # projecting onto same PCs as earlier
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J, basis_2)
     return W, R2_total, R2_dim, MSE_all, RMSE_all
@@ -1129,9 +1115,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     cond, _, _ = tensor_N.shape
 
     for dim in dims:
-        regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+        regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
         N_tilde, _ = run_PCA(regress_N, dim)
-        N_move, _ = run_PCA(regress_N, dim)
         M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
         # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement
@@ -1157,7 +1142,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
         # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
+        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
         var_tuning_means.append(np.mean(var_tuning))
         frob_tuning_means.append(np.mean(frob_tuning))
         null_frac_means.append(np.mean(null_frac))
@@ -1224,9 +1209,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     # getting weights matrix for potent and null space
     cond, _, fin_time = tensor_N.shape
-    _, N_fig4 = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
+    N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
     regress_N, N_move, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
-    N_move, _ = run_PCA(N_move, dims)
     N_tilde, PCs = run_PCA(regress_N, dims)
     M_tilde, _ = run_PCA(regress_M, int(dims/2))
 
