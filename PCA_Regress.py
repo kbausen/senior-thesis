@@ -1217,8 +1217,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
-    print("Regress_N time bins: ", regress_N.shape[2])
-    print("N_fig4 time bins: ", N_fig4.shape[2])
+    print("Regress_N time bins: ", regress_N.shape[1])
+    print("N_fig4 time bins: ", N_fig4.shape[1])
     # how many time bins are included in the movement period
     time_bins = int(time_ct / cond)
 
