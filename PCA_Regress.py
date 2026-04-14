@@ -536,8 +536,8 @@ def slice (tensor_N):
     move_good = np.zeros(N_move_mat.shape[1])
     all_good = []
 
-    mean_prep = np.mean(N_prep_mat, axis = 0) * 10
-    mean_move = np.mean(N_move_mat, axis = 0) * 10
+    mean_prep = np.mean(N_prep_mat, axis = 0) 
+    mean_move = np.mean(N_move_mat, axis = 0) 
 
     for i in range (N_prep_mat.shape[1]):
         check = False
