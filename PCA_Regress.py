@@ -510,7 +510,55 @@ def scaling (tensor, tuning = False):
     
     return(norm_matrix)
    
+def slice (tensor_N): 
+    N_prep_start = 30
+    N_prep_end = 80   # 81 because it will get spliced off otherwise
 
+    # retrieving dataset specifications
+    J, PMd = ident(tensor_N)
+
+    # altering movement periods depending on dataset
+    if J:
+        N_move_start = 150
+        N_move_end = 216
+    else:
+        N_move_start = 142
+        N_move_end = 208
+        
+    N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
+    N_prep = tensor_N[:,:, N_prep_start:N_prep_end]
+    N_move = tensor_N[:,:, N_move_start:N_move_end]
+
+    N_prep_mat = shape_matrix(N_prep)
+    N_move_mat = shape_matrix(N_move)
+
+    prep_good = np.zeros(N_prep_mat.shape[1])
+    move_good = np.zeros(N_move_mat.shape[1])
+    all_good = []
+
+    mean_prep = np.mean(N_prep_mat, axis = 0) * 10 
+    mean_move = np.mean(N_move_mat, axis = 0) * 10
+
+    for i in range (N_prep_mat.shape[1]):
+        check = False
+
+        if  mean_prep[i] > 3: 
+            prep_good[i] = 1 
+            check = True
+        else: 
+            prep_good[i] = 0
+        
+        if  mean_move[i] > 5: 
+            move_good[i] = 1 
+            if check: 
+                all_good.append(i)
+        else: 
+            move_good[i] = 0
+        
+
+    N_idx = np.r_[(all_good)]
+    sliced_tensor = tensor_N[:, N_idx, :]
+    return sliced_tensor
 
 def fig_3_cut_t(tensor, dimensions):
     """
@@ -523,6 +571,7 @@ def fig_3_cut_t(tensor, dimensions):
     """
     # retrieving dataset specifications
     J, _ = ident(tensor)
+    tensor = slice(tensor)
 
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
@@ -585,6 +634,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     d2 -= 1
         # retrieving dataset specifications
     J, _ = ident(tensor)
+    tensor = slice(tensor)
 
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
@@ -781,6 +831,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
+
+    tensor_N = slice(tensor_N)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
@@ -1106,6 +1158,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
 
+    tensor_N = slice(tensor_N)
+
     # initializing arrays to hold the average values for each set of dimensions
     var_tuning_means = []
     frob_tuning_means = []
@@ -1208,6 +1262,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
 
+    tensor_N = slice(tensor_N)
+
     # getting weights matrix for potent and null space
     cond, _, fin_time = tensor_N.shape
     N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
@@ -1217,8 +1273,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
-    print("Regress_N time bins: ", regress_N.shape[1])
-    print("N_fig4 time bins: ", N_fig4.shape[1])
+
     # how many time bins are included in the movement period
     time_bins = int(time_ct / cond)
 
@@ -1255,7 +1310,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     pot_tensor = shape_tensor(N_potent, cond)
     null_tensor = shape_tensor(N_null, cond)
     _, _, time = pot_tensor.shape
-    print("Potent tensor time: ", time)
 
     # initializing array for holding the variance
     V_pot = np.zeros(time)
@@ -1277,7 +1331,6 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     V_null = (1/gamma) * V_null
     # V_pot = (1/gamma) * V_pot
    
-    print("Length of V_null: ", len(V_null))
     # initializing figure parameters
     fig = plt.figure(figsize=(5, 5))
     gs = GridSpec(1, 1, figure=fig)
