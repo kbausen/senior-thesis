@@ -1216,7 +1216,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     time_ct = regress_M.shape [0]
     time_ct_neu = regress_N.shape [0]
-
+    print("Regress_N time bins: ", regress_N.shape[2])
+    print("N_fig4 time bins: ", N_fig4.shape[2])
     # how many time bins are included in the movement period
     time_bins = int(time_ct / cond)
 
@@ -1253,6 +1254,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     pot_tensor = shape_tensor(N_potent, cond)
     null_tensor = shape_tensor(N_null, cond)
     _, _, time = pot_tensor.shape
+    print("Potent tensor time: ", time)
 
     # initializing array for holding the variance
     V_pot = np.zeros(time)
@@ -1274,6 +1276,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     V_null = (1/gamma) * V_null
     # V_pot = (1/gamma) * V_pot
    
+    print("Length of V_null: ", len(V_null))
     # initializing figure parameters
     fig = plt.figure(figsize=(5, 5))
     gs = GridSpec(1, 1, figure=fig)
