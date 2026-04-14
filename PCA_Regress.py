@@ -401,12 +401,12 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
 
     # Calling best lambda
     if cv:
-        lam, _, _ = best_lam(N_tilde, M_tilde, num_bins)
+        lam, _, _ = best_lam(neu_train_mat, mus_train_mat, num_bins)
     else:
         lam, _ = simple_lam(neu_train_mat, mus_train_mat)
 
     # setting up for regression
-    neu_train_cov = N_tilde.T @ N_tilde
+    neu_train_cov = neu_train_mat.T @ neu_train_mat
     I = np.identity(neu_train_cov.shape[0])
 
     # if J and not PMd:
@@ -417,7 +417,7 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     print(">>> best_lam returning:", lam)
     
     # retrieving the weights matrix for M_tilde = W N_tilde and the sum of squares regression using the training data
-    W = np.linalg.solve(neu_train_cov + (lam * I), N_tilde.T @ M_tilde)
+    W = np.linalg.solve(neu_train_cov + (lam * I), neu_train_mat.T @ mus_train_mat)
 
     # calculating the M_hat by multiplying neu_test_mat and W from above
     M_test_hat = neu_test_mat @ W
