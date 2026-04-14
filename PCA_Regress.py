@@ -680,8 +680,7 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     else:
         N_move_start = 142
         N_move_end = 208
-    N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
-    N_cut = tensor_N[:,:, N_idx]
+    
 
     # retrieving specific indexes for figure 4
     if fig4:
@@ -693,7 +692,9 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
         else:
             N_move_start = 117
             N_move_end = 208
-        
+    
+    N_idx = np.r_[N_prep_start:N_prep_end, N_move_start:N_move_end]
+    N_cut = tensor_N[:,:, N_idx]
     
     # isolates movement data needed for the regression to find W tilde and tuning
     N_move = tensor_N[:,:, N_move_start:N_move_end]
