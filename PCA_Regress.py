@@ -536,8 +536,8 @@ def slice (tensor_N):
     move_good = np.zeros(N_move_mat.shape[1])
     all_good = []
 
-    mean_prep = np.mean(N_prep_mat, axis = 0) 
-    mean_move = np.mean(N_move_mat, axis = 0) 
+    mean_prep = np.mean(N_prep_mat, axis = 0) * 10
+    mean_move = np.mean(N_move_mat, axis = 0) * 10
 
     for i in range (N_prep_mat.shape[1]):
         check = False
@@ -558,7 +558,7 @@ def slice (tensor_N):
 
     N_idx = np.r_[(all_good)]
     sliced_tensor = tensor_N[:, N_idx, :]
-    return tensor_N
+    return sliced_tensor
 
 def fig_3_cut_t(tensor, dimensions):
     """
@@ -635,6 +635,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
         # retrieving dataset specifications
     J, _ = ident(tensor)
     tensor = slice(tensor)
+    
 
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
@@ -833,6 +834,9 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     J, PMd = ident(tensor_N)
 
     tensor_N = slice(tensor_N)
+
+    if PMd: 
+        tensor_M = slice(tensor_M)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
@@ -1159,6 +1163,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     J, PMd = ident(tensor_N)
 
     tensor_N = slice(tensor_N)
+    if PMd: 
+        tensor_M = slice(tensor_M)
 
     # initializing arrays to hold the average values for each set of dimensions
     var_tuning_means = []
@@ -1263,6 +1269,9 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     J, PMd = ident(tensor_N)
 
     tensor_N = slice(tensor_N)
+
+    if PMd: 
+        tensor_M = slice(tensor_M)
 
     # getting weights matrix for potent and null space
     cond, _, fin_time = tensor_N.shape
