@@ -1081,10 +1081,13 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     print("1/Gamma: ", 1/gamma)
     print("1/Gamma2: ", 1/gamma2)
     print("Move null/pot:", null_move_var / pot_move_var)
-    print("Prep null: ", null_prep_var)
-    print("Prep potent: ", pot_prep_var)
+    print("potent move variance: ", pot_move_var)
+    print("null move variance: ", null_move_var)
+    print("null prep variance:", null_prep_var)
+    print("potent prep variance: ", pot_prep_var)
     print("Tuning with variance: ", var_tuning)
     print("Tuning with frob: ", frob_tuning)
+    print("Prep fraction: ",  null_fraction)
     return var_tuning, frob_tuning, null_fraction, pot_fraction
 
 
