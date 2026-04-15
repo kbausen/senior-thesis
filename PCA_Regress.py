@@ -558,7 +558,7 @@ def slice (tensor_N):
 
     N_idx = np.r_[(all_good)]
     sliced_tensor = tensor_N[:, N_idx, :]
-    return sliced_tensor
+    return tensor_N
 
 def fig_3_cut_t(tensor, dimensions):
     """
