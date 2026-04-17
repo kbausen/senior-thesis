@@ -1326,15 +1326,26 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     # initializing array for holding the variance
     V_pot = np.zeros(time)
     V_null = np.zeros(time)
+    
+
+    var_total  = np.sum(np.var(N_tilde_full, axis=0))
+    var_null   = np.sum(np.var(N_null, axis=0))
+    var_potent = np.sum(np.var(N_potent, axis=0))
+
+    frac_null   = var_null / var_total
+    frac_potent = var_potent / var_total
+    print("frac null: ", frac_null)
+    print("frac potent: ", frac_potent)
 
     # goes through all time steps and pulls all conditions
     for t in range (time):
         X_pot  = pot_tensor[:, :, t]
         X_null = null_tensor[:, :, t]
-       
+        
        # variance 
         V_null[t] = np.sum(np.var(X_null, axis=0))
         V_pot[t]  = np.sum(np.var(X_pot, axis=0))
+
        
         # # squaring and adding values and dividing by condition numbers to compute variance
         # V_null[t] = np.sum(X_null**2) / (cond * dims)
