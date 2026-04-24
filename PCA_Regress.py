@@ -586,7 +586,7 @@ def fig_3_cut_t(tensor, dimensions):
     """
     # retrieving dataset specifications
     J, _ = ident(tensor)
-    tensor = slice(tensor)
+    # tensor = slice(tensor)
 
     # scaling, mean centering, and arranging the tensor into a matrix
     N_matrix, _  = time_cut(tensor)
@@ -649,7 +649,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     d2 -= 1
         # retrieving dataset specifications
     J, _ = ident(tensor)
-    tensor = slice(tensor)
+    # tensor = slice(tensor)
     
 
     # scaling, mean centering, and arranging the tensor into a matrix
@@ -850,10 +850,10 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
 
-    tensor_N = slice(tensor_N)
+    # tensor_N = slice(tensor_N)
 
-    if PMd: 
-        tensor_M = slice(tensor_M)
+    # if PMd: 
+        # tensor_M = slice(tensor_M)
 
     # scaling, mean centering, and involving only the time periods needed for regression (the movement)
     regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
@@ -1208,9 +1208,9 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
                 tensor_M = tensor_M[initial:finish, :, :]
                 initial = finish
 
-            tensor_N = slice(tensor_N)
-            if PMd: 
-                tensor_M = slice(tensor_M)
+            # tensor_N = slice(tensor_N)
+            # if PMd: 
+                # tensor_M = slice(tensor_M)
 
             # setting up needed shape specifics
             cond, _, _ = tensor_N.shape
@@ -1349,10 +1349,10 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             tensor_M = tensor_M[i:finish, :, :]
             
 
-        tensor_N = slice(tensor_N)
+        # tensor_N = slice(tensor_N)
 
-        if PMd: 
-            tensor_M = slice(tensor_M)
+        # if PMd: 
+        #     tensor_M = slice(tensor_M)
 
         # getting weights matrix for potent and null space
         cond, _, fin_time = tensor_N.shape
