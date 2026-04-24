@@ -1184,12 +1184,12 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
 
     if J and PMd: 
         J_rep = 4
-        if len(dims) > 1: 
-            # initializing arrays to hold the average values for each set of dimensions
-            var_tuning_means_ext = []
-            frob_tuning_means_ext = []
-            null_frac_means_ext = []
-            pot_frac_means_ext = []
+    
+        # initializing arrays to hold the average values for each set of dimensions
+        var_tuning_means_ext = []
+        frob_tuning_means_ext = []
+        null_frac_means_ext = []
+        pot_frac_means_ext = []
             
     else: 
         J_rep = 1
@@ -1260,12 +1260,11 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
             frob_tuning_means_ext.append(np.mean(frob_tuning_means))
             null_frac_means_ext.append(np.mean(null_frac_means))
             pot_frac_means_ext.append(np.mean(pot_frac_means))
-
-        if J and PMd:
             var_tuning_means = var_tuning_means_ext
             frob_tuning_means = frob_tuning_means_ext
             null_frac_means = null_frac_means_ext
             pot_frac_means = pot_frac_means_ext
+            
     # plotting
     if plot:
        
