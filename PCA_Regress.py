@@ -695,7 +695,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     plt.show()
 
 
-def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
+def time_shift(tensor_N, tensor_M, scale = False, fig4 = False, J_PMd = False):
     """
     This function will both splice the data based on critical time events referenced in the paper. This is
     necessary before PCA or anything can be run on the data
@@ -735,8 +735,10 @@ def time_shift(tensor_N, tensor_M, scale = False, fig4 = False):
     N_prep_end = 81     # 81 because it will get spliced off otherwise
 
     # retrieving dataset specifications
-    J, PMd = ident(tensor_N)
 
+    J, PMd = ident(tensor_N)
+    if J_PMd: 
+            PMd = True
     # altering movement periods depending on dataset
     if J:
         N_move_start = 150
@@ -1191,12 +1193,14 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         J_rep = 1
     initial = 0
 
+    J_PMd = False
     
 
     for dim in dims: 
 
         for i in range (J_rep): 
             if J and PMd:
+                J_PMd = True
                 finish = initial + 27
                 tensor_N = tensor_N[initial:finish, :, :]
                 tensor_M = tensor_M[initial:finish, :, :]
@@ -1216,7 +1220,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
             pot_frac_means = []
 
             
-            regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+            regress_N, _, regress_M = time_shift(tensor_N, tensor_M, J_PMd = J_PMd)          # normal range matrix for regression
             N_tilde, _ = run_PCA(regress_N, dim)
             M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
@@ -1317,19 +1321,31 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
    
 def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
+    # retrieving dataset specifications
+    J, PMd = ident(tensor_N)
+
     if J and PMd: 
         J_rep = 4
+        J_PMd = True
     else: 
         J_rep = 1
+        J_PMd = False
+
+    V_null_ext = []
+    V_pot_ext = []
+    var_total_ext  = []
+    var_null_ext   = []
+    var_potent_ext = []
+
+    frac_null_ext  = []
+    frac_potent_ext = []
 
     for i in range (J_rep): 
-            if J and PMd:
-                finish = initial + 27
-                tensor_N = tensor_N[initial:finish, :, :]
-                tensor_M = tensor_M[initial:finish, :, :]
-                initial = finish
-        # retrieving dataset specifications
-        J, PMd = ident(tensor_N)
+        if J and PMd:
+            finish = i + 27
+            tensor_N = tensor_N[i:finish, :, :]
+            tensor_M = tensor_M[i:finish, :, :]
+            
 
         tensor_N = slice(tensor_N)
 
@@ -1338,8 +1354,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
         # getting weights matrix for potent and null space
         cond, _, fin_time = tensor_N.shape
-        N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
-        regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+        N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True, J_PMd = J_PMd)     # elongated matrix for projection later
+        regress_N, _, regress_M = time_shift(tensor_N, tensor_M, J_PMd = J_PMd)          # normal range matrix for regression
         N_tilde, PCs = run_PCA(regress_N, dims)
         M_tilde, _ = run_PCA(regress_M, int(dims/2))
 
@@ -1387,15 +1403,13 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         V_pot = np.zeros(time)
         V_null = np.zeros(time)
         
-
         var_total  = np.sum(np.var(N_tilde_full, axis=0))
         var_null   = np.sum(np.var(N_null, axis=0))
         var_potent = np.sum(np.var(N_potent, axis=0))
 
         frac_null   = var_null / var_total
         frac_potent = var_potent / var_total
-        print("frac null: ", frac_null)
-        print("frac potent: ", frac_potent)
+        
 
         # goes through all time steps and pulls all conditions
         for t in range (time):
@@ -1413,7 +1427,38 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     
         V_null = (1/gamma) * V_null
         # V_pot = (1/gamma) * V_pot
-   
+        
+        # appending if J_PMd
+        if J_PMd:
+            V_null_ext.append(V_null)
+            V_pot_ext.append(V_pot)
+            var_total_ext.append(var_total)
+            var_null_ext.append(var_null)
+            var_potent_ext.append(var_potent)
+            frac_null_ext.append(frac_null)
+            frac_potent_ext.append(frac_potent)
+
+
+
+    # averaging 
+        if J_PMd: 
+            V_null_array = np.vstack(V_null_ext)
+            V_null = np.mean(V_null_array, axis = 0)
+
+            V_pot_array = np.vstack(V_pot_ext)
+            V_pot = np.mean(V_pot_array, axis = 0)
+
+            var_total = np.mean(var_total_ext)
+            var_null = np.mean(var_null_ext)
+            var_potent = np.mean(var_potent_ext)
+            frac_null = np.mean(frac_null_ext)
+            frac_potent = np.mean(frac_potent_ext)
+
+
+    # print
+    print("frac null: ", frac_null)
+    print("frac potent: ", frac_potent)
+
     # initializing figure parameters
     fig = plt.figure(figsize=(5, 5))
     gs = GridSpec(1, 1, figure=fig)
