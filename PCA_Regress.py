@@ -412,8 +412,6 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
     # mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
-    neu_train_mat = N_tilde
-    mus_train_mat = M_tilde
     # Calling best lambda
     if cv:
         lam, _, _ = best_lam(neu_train_mat, mus_train_mat, num_bins)
