@@ -548,6 +548,8 @@ def slice (tensor_N):
     prep_good = np.zeros(N_prep_mat.shape[1])
     move_good = np.zeros(N_move_mat.shape[1])
     all_good = []
+    print(all_good)
+    print(all_good.dtype)
 
     mean_prep = np.mean(N_prep_mat, axis = 0) 
     mean_move = np.mean(N_move_mat, axis = 0) 
