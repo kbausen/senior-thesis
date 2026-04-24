@@ -98,6 +98,19 @@ def ident (tensor_N):
    
     return J, PMd
 
+def J_split (J_PMd_tensor, J_M1_tensor): 
+    J_PMd_1 = J_PMd_tensor[:27, :, :]
+    J_PMd_2 = J_PMd_tensor[27:54, :, :]
+    J_PMd_3 = J_PMd_tensor[54:81, :, :]
+    J_PMd_4 = J_PMd_tensor[81:108, :, :]
+
+    J_M1_1 = J_M1_tensor[:27, :, :]
+    J_M1_2 = J_M1_tensor[27:54, :, :]
+    J_M1_3 = J_M1_tensor[54:81, :, :]
+    J_M1_4 = J_M1_tensor[81:108, :, :]
+
+    return J_PMd_1, J_PMd_2, J_PMd_3, J_PMd_4, J_M1_1, J_M1_2, J_M1_3, J_M1_4
+
 
 def svd (matrix, plot = False):
     """
@@ -1165,53 +1178,89 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
 
-    tensor_N = slice(tensor_N)
-    if PMd: 
-        tensor_M = slice(tensor_M)
+    if J and PMd: 
+        J_rep = 4
+        if len(dims) > 1: 
+            # initializing arrays to hold the average values for each set of dimensions
+            var_tuning_means_ext = []
+            frob_tuning_means_ext = []
+            null_frac_means_ext = []
+            pot_frac_means_ext = []
+            
+    else: 
+        J_rep = 1
+    initial = 0
 
-    # initializing arrays to hold the average values for each set of dimensions
-    var_tuning_means = []
-    frob_tuning_means = []
-    null_frac_means = []
-    pot_frac_means = []
+    
 
-    # setting up needed shape specifics
-    cond, _, _ = tensor_N.shape
+    for dim in dims: 
 
-    for dim in dims:
-        regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
-        N_tilde, _ = run_PCA(regress_N, dim)
-        M_tilde, _ = run_PCA(regress_M, int(dim/2))
+        for i in range (J_rep): 
+            if J and PMd:
+                finish = initial + 27
+                tensor_N = tensor_N[initial:finish, :, :]
+                tensor_M = tensor_M[initial:finish, :, :]
+                initial = finish
 
-        # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement
-        time_ct = regress_M.shape [0]
-        time_ct_neu = regress_N.shape [0]
+            tensor_N = slice(tensor_N)
+            if PMd: 
+                tensor_M = slice(tensor_M)
 
-        # how many time bins are included in the movement period for a single condition
-        time_bins = int(time_ct / cond)
+            # setting up needed shape specifics
+            cond, _, _ = tensor_N.shape
 
-        # how many time bins are included in the preparatory and movement period per condition
-        time_bins_pm = int(time_ct_neu / cond)
+            # initializing arrays to hold the average values for each set of dimensions
+            var_tuning_means = []
+            frob_tuning_means = []
+            null_frac_means = []
+            pot_frac_means = []
 
-        # difference in bins = just prep bins ie where the movement period starts for each condition
-        diff_bin = int((time_bins_pm - time_bins))
+            
+            regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+            N_tilde, _ = run_PCA(regress_N, dim)
+            M_tilde, _ = run_PCA(regress_M, int(dim/2))
 
-        # isolating the preparatory and movement bins
-        N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-        N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
-        N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
+            # lengths of conditions x time, regress M only has movement, whereas regress_N has prep and movement
+            time_ct = regress_M.shape [0]
+            time_ct_neu = regress_N.shape [0]
 
-        # reshape into matrices for tuning computation
-        N_tilde_move = shape_matrix(N_tilde_tens_move)
-        N_tilde_prep = shape_matrix(N_tilde_tens_prep)
+            # how many time bins are included in the movement period for a single condition
+            time_bins = int(time_ct / cond)
 
-        # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
-        var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
-        var_tuning_means.append(np.mean(var_tuning))
-        frob_tuning_means.append(np.mean(frob_tuning))
-        null_frac_means.append(np.mean(null_frac))
-        pot_frac_means.append(np.mean(pot_frac))
-   
+            # how many time bins are included in the preparatory and movement period per condition
+            time_bins_pm = int(time_ct_neu / cond)
+
+            # difference in bins = just prep bins ie where the movement period starts for each condition
+            diff_bin = int((time_bins_pm - time_bins))
+
+            # isolating the preparatory and movement bins
+            N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+            N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
+            N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
+
+            # reshape into matrices for tuning computation
+            N_tilde_move = shape_matrix(N_tilde_tens_move)
+            N_tilde_prep = shape_matrix(N_tilde_tens_prep)
+
+            # retrieving tuning values and null and potent fraction for preparatory activity for each set of dimensionally reduced regression
+            var_tuning, frob_tuning, null_frac, pot_frac = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims = dim, time_bins = time_bins, J = J, PMd = PMd, rep = rep)
+            var_tuning_means.append(np.mean(var_tuning))
+            frob_tuning_means.append(np.mean(frob_tuning))
+            null_frac_means.append(np.mean(null_frac))
+            pot_frac_means.append(np.mean(pot_frac))
+        
+        # J_PMd analysis needs to be average of the 4 subsets of data, so per dimension these four subsets are averaged 
+        if J and PMd: 
+            var_tuning_means_ext.append(np.mean(var_tuning_means))
+            frob_tuning_means_ext.append(np.mean(frob_tuning_means))
+            null_frac_means_ext.append(np.mean(null_frac_means))
+            pot_frac_means_ext.append(np.mean(pot_frac_means))
+
+        if J and PMd:
+            var_tuning_means = var_tuning_means_ext
+            frob_tuning_means = frob_tuning_means_ext
+            null_frac_means = null_frac_means_ext
+            pot_frac_means = pot_frac_means_ext
     # plotting
     if plot:
        
@@ -1268,91 +1317,102 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
    
 def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
-    # retrieving dataset specifications
-    J, PMd = ident(tensor_N)
+    if J and PMd: 
+        J_rep = 4
+    else: 
+        J_rep = 1
 
-    tensor_N = slice(tensor_N)
+    for i in range (J_rep): 
+            if J and PMd:
+                finish = initial + 27
+                tensor_N = tensor_N[initial:finish, :, :]
+                tensor_M = tensor_M[initial:finish, :, :]
+                initial = finish
+        # retrieving dataset specifications
+        J, PMd = ident(tensor_N)
 
-    if PMd: 
-        tensor_M = slice(tensor_M)
+        tensor_N = slice(tensor_N)
 
-    # getting weights matrix for potent and null space
-    cond, _, fin_time = tensor_N.shape
-    N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
-    regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
-    N_tilde, PCs = run_PCA(regress_N, dims)
-    M_tilde, _ = run_PCA(regress_M, int(dims/2))
+        if PMd: 
+            tensor_M = slice(tensor_M)
 
-    time_ct = regress_M.shape [0]
-    time_ct_neu = regress_N.shape [0]
+        # getting weights matrix for potent and null space
+        cond, _, fin_time = tensor_N.shape
+        N_fig4, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)     # elongated matrix for projection later
+        regress_N, _, regress_M = time_shift(tensor_N, tensor_M)          # normal range matrix for regression
+        N_tilde, PCs = run_PCA(regress_N, dims)
+        M_tilde, _ = run_PCA(regress_M, int(dims/2))
 
-    # how many time bins are included in the movement period
-    time_bins = int(time_ct / cond)
+        time_ct = regress_M.shape [0]
+        time_ct_neu = regress_N.shape [0]
 
-    # how many time bins are included in the preparatory and movement period
-    time_bins_pm = int(time_ct_neu / cond)
+        # how many time bins are included in the movement period
+        time_bins = int(time_ct / cond)
 
-    # difference in bins = just prep bins
-    diff_bin = int((time_bins_pm - time_bins))
+        # how many time bins are included in the preparatory and movement period
+        time_bins_pm = int(time_ct_neu / cond)
 
-    # isolating the preparatory and movement bins
-    N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
-    N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
-    N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
+        # difference in bins = just prep bins
+        diff_bin = int((time_bins_pm - time_bins))
 
-    # reshape into matrices for tuning computation
-    N_tilde_move = shape_matrix(N_tilde_tens_move)
-    N_tilde_prep = shape_matrix(N_tilde_tens_prep)
+        # isolating the preparatory and movement bins
+        N_tilde_tens = shape_tensor(N_tilde, cond, time_bins_pm)
+        N_tilde_tens_move = N_tilde_tens[:,:,diff_bin:]
+        N_tilde_tens_prep = N_tilde_tens[:,:,:diff_bin]
 
-    # recovering the W_potent and W_null
-    W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, J = J, PMd = PMd, time = True)
-   
-    # projecting the expanded range onto the PCs recovered from the normal range
-    N_tilde_full = N_fig4 @ PCs
+        # reshape into matrices for tuning computation
+        N_tilde_move = shape_matrix(N_tilde_tens_move)
+        N_tilde_prep = shape_matrix(N_tilde_tens_prep)
 
-    # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
-    N_potent = N_tilde_full @ W_potent
-    N_null = N_tilde_full @ W_null
-
-    # mean centering
-    N_potent = N_potent - np.mean(N_potent, axis = 0)
-    N_null = N_null - np.mean(N_null, axis = 0)
-
-    # reshaping into a tensor
-    pot_tensor = shape_tensor(N_potent, cond)
-    null_tensor = shape_tensor(N_null, cond)
-    _, _, time = pot_tensor.shape
-
-    # initializing array for holding the variance
-    V_pot = np.zeros(time)
-    V_null = np.zeros(time)
+        # recovering the W_potent and W_null
+        W_potent, W_null, gamma = tuning_setup(N_tilde_move, M_tilde, N_tilde_prep, dims, time_bins = time_bins, J = J, PMd = PMd, time = True)
     
+        # projecting the expanded range onto the PCs recovered from the normal range
+        N_tilde_full = N_fig4 @ PCs
 
-    var_total  = np.sum(np.var(N_tilde_full, axis=0))
-    var_null   = np.sum(np.var(N_null, axis=0))
-    var_potent = np.sum(np.var(N_potent, axis=0))
+        # projecting the neural activity of 400ms before and after target and 300ms before and 800ms after move starts onto the potent and null space of the weights matrix
+        N_potent = N_tilde_full @ W_potent
+        N_null = N_tilde_full @ W_null
 
-    frac_null   = var_null / var_total
-    frac_potent = var_potent / var_total
-    print("frac null: ", frac_null)
-    print("frac potent: ", frac_potent)
+        # mean centering
+        N_potent = N_potent - np.mean(N_potent, axis = 0)
+        N_null = N_null - np.mean(N_null, axis = 0)
 
-    # goes through all time steps and pulls all conditions
-    for t in range (time):
-        X_pot  = pot_tensor[:, :, t]
-        X_null = null_tensor[:, :, t]
+        # reshaping into a tensor
+        pot_tensor = shape_tensor(N_potent, cond)
+        null_tensor = shape_tensor(N_null, cond)
+        _, _, time = pot_tensor.shape
+
+        # initializing array for holding the variance
+        V_pot = np.zeros(time)
+        V_null = np.zeros(time)
         
-       # variance 
-        V_null[t] = np.sum(np.var(X_null, axis=0))
-        V_pot[t]  = np.sum(np.var(X_pot, axis=0))
 
-       
-        # # squaring and adding values and dividing by condition numbers to compute variance
-        # V_null[t] = np.sum(X_null**2) / (cond * dims)
-        # V_pot[t]  = np.sum(X_pot**2)  / (cond * dims)
-   
-    V_null = (1/gamma) * V_null
-    # V_pot = (1/gamma) * V_pot
+        var_total  = np.sum(np.var(N_tilde_full, axis=0))
+        var_null   = np.sum(np.var(N_null, axis=0))
+        var_potent = np.sum(np.var(N_potent, axis=0))
+
+        frac_null   = var_null / var_total
+        frac_potent = var_potent / var_total
+        print("frac null: ", frac_null)
+        print("frac potent: ", frac_potent)
+
+        # goes through all time steps and pulls all conditions
+        for t in range (time):
+            X_pot  = pot_tensor[:, :, t]
+            X_null = null_tensor[:, :, t]
+            
+        # variance 
+            V_null[t] = np.sum(np.var(X_null, axis=0))
+            V_pot[t]  = np.sum(np.var(X_pot, axis=0))
+
+        
+            # # squaring and adding values and dividing by condition numbers to compute variance
+            # V_null[t] = np.sum(X_null**2) / (cond * dims)
+            # V_pot[t]  = np.sum(X_pot**2)  / (cond * dims)
+    
+        V_null = (1/gamma) * V_null
+        # V_pot = (1/gamma) * V_pot
    
     # initializing figure parameters
     fig = plt.figure(figsize=(5, 5))
