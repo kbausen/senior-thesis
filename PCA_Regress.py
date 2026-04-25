@@ -635,8 +635,6 @@ def fig_3_cut_t(tensor, dimensions):
     plt.show()
 
 
-
-
 def fig_3_spec(tensor, dimensions, d1, d2):
     """
     This function takes in the interpPSTH 3D tensor [conditions, neurons, time bins] and will create figure 3 from the Churchland et al. 2012 paper.
@@ -661,7 +659,7 @@ def fig_3_spec(tensor, dimensions, d1, d2):
     new_bins = int(N_matrix.shape[0] / conditions)
 
     # gathering the left vectors and projecting the N_matrix onto them
-    proj, _ = run_PCA(N_matrix, dimensions)
+    proj, _ = run_PCA(N_matrix, 2)
    
     # returning the scaled, mean centered, and time cut matrix into a tensor  
     scaled_tensor = shape_tensor(proj, conditions, new_bins)
@@ -676,13 +674,34 @@ def fig_3_spec(tensor, dimensions, d1, d2):
             plt.plot(dim1[:51], dim2[:51], '-', color='blue', label='Preparatory')
             plt.plot(dim1[51], dim2[51], 'o', color='gray', label='Go')
             plt.plot(dim1[52:117], dim2[52:117], '-', color='green', label='Movement')
-            plt.plot(dim1[117], dim2[117], 'o', color='red', label='End')
+            plt.annotate(
+                'End',
+                xy=(dim1[117], dim2[117]),
+                xytext=(dim1[116], dim2[116]),
+                arrowprops=dict(arrowstyle='-|>', color='green', lw=2),
+                color='green'
+            )
         else:
             plt.plot(dim1[:51], dim2[:51], '-', color='blue')
             plt.plot(dim1[51], dim2[51], 'o', color='gray')
             plt.plot(dim1[52:117], dim2[52:117], '-', color='green')
-            plt.plot(dim1[117], dim2[117], 'o', color='red')
+            plt.annotate(
+                '',
+                xy=(dim1[117], dim2[117]),
+                xytext=(dim1[116], dim2[116]),
+                arrowprops=dict(arrowstyle='-|>', color='green', lw=2),
+            )
 
+
+    ax = plt.gca()
+    plot_cov_ellipse(
+        prep_x, prep_y, ax,
+        n_std=2,
+        edgecolor='red',
+        facecolor='none',
+        linewidth=2,
+        label='Prep (2 s.d.)'
+    )
 
     plt.xlabel(f"Dimension {d1 + 1}")
     plt.ylabel(f"Dimension {d2 + 1}")
