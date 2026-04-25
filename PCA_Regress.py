@@ -1281,7 +1281,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         x = np.arange(len(dims))           # group positions
         width = 0.15                       # bar width
 
-        fig, ax = plt.subplots(figsize=(8, 5))
+        fig, ax = plt.subplots(figsize=(8, 3))
 
         # Null bars (all same color)
         ax.bar(x - width/2, null_prop, width, label="Null", color='midnightblue')
