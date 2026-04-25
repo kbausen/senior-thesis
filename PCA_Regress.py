@@ -412,8 +412,8 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
     # mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
-    # neu_train_mat = N_tilde
-    # mus_train_mat = M_tilde 
+    neu_train_mat = N_tilde
+    mus_train_mat = M_tilde 
 
     # Calling best lambda
     if cv:
@@ -1279,7 +1279,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         print(pot_frac_means)
 
         x = np.arange(len(dims))           # group positions
-        width = 0.35                       # bar width
+        width = 0.15                       # bar width
 
         fig, ax = plt.subplots(figsize=(8, 5))
 
