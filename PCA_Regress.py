@@ -1350,6 +1350,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         plt.tight_layout()
         plt.show()
 
+        return var_tuning_means
+
     else:
         return var_tuning_means, frob_tuning_means, null_frac_means, pot_frac_means
    
