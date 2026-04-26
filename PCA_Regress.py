@@ -972,7 +972,11 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     else:
         bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0])
         bax2 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1])  
-
+    print("prep:", len(prep_time))
+    print("move:", len(move_time))
+    print("segment size:", time_bins)
+    print("total N rows:", N_null.shape[0])
+    print("expected per cond:", len(prep_time) + len(move_time))
 
     # labels for output null graph
     bax1.text(500, -1.1, "Test Epoch", ha='center')
@@ -1014,7 +1018,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
             bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
         else:
             bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue',  linewidth = .5)
-            print("got to move_time ")
             bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
    
     # labels for output potent graph
