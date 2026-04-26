@@ -1004,6 +1004,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax2.plot([1420, 2080], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
 
+    print(cond)
     # plotting the data for output null space
     for i in range(cond):
         start_prep = i* time_bins
@@ -1014,6 +1015,8 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
             bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue', label = 'null',  linewidth = .5)
             bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
         else:
+            print(len(prep_time))
+            print(N_null[end_prep:end_move, basis].shape)
             bax1.plot(prep_time, N_null[start_prep:end_prep, basis], '-', color='midnightblue',  linewidth = .5)
             bax1.plot(move_time, N_null[end_prep:end_move, basis], '-', color='midnightblue',  linewidth = .5)
    
