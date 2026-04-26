@@ -86,7 +86,7 @@ def ident (tensor_N):
         J = True
    
     if J:
-        if neu > 100:
+        if neu < 100:
             PMd = True
         else:
             PMd = False
