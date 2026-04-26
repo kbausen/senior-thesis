@@ -278,6 +278,10 @@ def best_lam(neu_lam, mus_lam, time_bins, RRRR = False, rank = 3):
     mse_vals = []
     rmse_vals = []
 
+    print("neu_lam shape:", neu_lam.shape)
+    print("time_bins:", time_bins)
+    print("computed conds:", int(neu_lam.shape[0] / time_bins))
+
     for lam in lambdas:
 
         fold_mse = []
