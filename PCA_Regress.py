@@ -278,9 +278,6 @@ def best_lam(neu_lam, mus_lam, time_bins, RRRR = False, rank = 3):
     mse_vals = []
     rmse_vals = []
 
-    print("neu_lam shape:", neu_lam.shape)
-    print("time_bins:", time_bins)
-    print("computed conds:", int(neu_lam.shape[0] / time_bins))
 
     for lam in lambdas:
 
@@ -420,8 +417,8 @@ def r_regress (N_tilde, M_tilde, num_bins, J, PMd, cv = True):
     # neu_test_mat -= np.mean(neu_train_mat, axis=0, keepdims=True)
     # mus_test_mat -= np.mean(mus_train_mat, axis=0, keepdims=True)      
 
-    neu_train_mat = N_tilde
-    mus_train_mat = M_tilde 
+    # neu_train_mat = N_tilde
+    # mus_train_mat = M_tilde 
 
     # Calling best lambda
     if cv:
@@ -559,9 +556,7 @@ def slice (tensor_N):
     prep_good = np.zeros(N_prep_mat.shape[1])
     move_good = np.zeros(N_move_mat.shape[1])
     all_good = []
-    print(all_good)
-    print(all_good.dtype)
-
+    
     mean_prep = np.mean(N_prep_mat, axis = 0) 
     mean_move = np.mean(N_move_mat, axis = 0) 
 
@@ -877,8 +872,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
-    print(J)
-    print(PMd)
     if J and PMd:
         J_sect -= 1
         lower = J_sect*27
@@ -980,11 +973,7 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
     else:
         bax1 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05, subplot_spec=gs[0])
         bax2 = brokenaxes(xlims=((0, 800), (1170, 2090)), ylims=((-1.25, 1.25),), hspace=.05,  subplot_spec=gs[1])  
-    print("prep:", len(prep_time))
-    print("move:", len(move_time))
-    print("segment size:", time_bins)
-    print("total N rows:", N_null.shape[0])
-    print("expected per cond:", len(prep_time) + len(move_time))
+ 
 
     # labels for output null graph
     bax1.text(500, -1.1, "Test Epoch", ha='center')
@@ -1014,7 +1003,6 @@ def fig_4_plot (W, N_tilde, cond, dimensions, basis = 0, J = True, basis_2 = 0):
         bax2.plot([1420, 2080], [y_line, y_line],
                 color='green', linewidth=4, solid_capstyle='butt')
 
-    print(J)
     # plotting the data for output null space
     for i in range(cond):
         start_prep = i* time_bins
