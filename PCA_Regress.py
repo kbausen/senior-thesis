@@ -86,7 +86,7 @@ def ident (tensor_N):
         J = True
    
     if J:
-        if cond > 30:
+        if neu > 35:
             PMd = True
         else:
             PMd = False
@@ -878,7 +878,6 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     # retrieving number of conditions
     cond = tensor_N.shape[0]
-
 
     # tensor_N = slice(tensor_N)
 
