@@ -913,8 +913,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd, cv = cv)
 
     if plot:
-        regress_N, fig4_N, _ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
-        N_tilde = fig4_N @ N_PCs  # projecting onto same PCs as earlier
+        regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
+        N_tilde = regress_N @ N_PCs  # projecting onto same PCs as earlier
         fig_4_plot(W, N_tilde, cond, dimensions, basis, J, basis_2)
     return W, R2_total, R2_dim, MSE_all, RMSE_all
 
