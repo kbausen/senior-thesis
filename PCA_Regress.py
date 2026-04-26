@@ -14,6 +14,7 @@ from scipy.io import loadmat
 import pickle
 from brokenaxes import brokenaxes
 from matplotlib.gridspec import GridSpec
+import Bichan_code as RRRR
 
 
 def shape_matrix (tensor):
@@ -238,7 +239,7 @@ def regress (train_N, train_M, lam):
     return W_hat, M_hat, R2_total, RMSE_lam, MSE_lam
 
 
-def best_lam(neu_lam, mus_lam, time_bins):
+def best_lam(neu_lam, mus_lam, time_bins, RRRR = False, rank = 3):
     """
     This function takes in the training data and will compute the best lambda value for ridge regression using cross-validation. It will return the best lambda
     value and the mean squared error for that lambda.
@@ -293,7 +294,10 @@ def best_lam(neu_lam, mus_lam, time_bins):
             # take testing data out
             neu_val = shape_matrix(neu_tensor[val_idx])
             mus_val = shape_matrix(mus_tensor[val_idx])
-
+            
+            if RRRR: 
+                W_hat, _, _ = RRRR.svd_RRR(neu_train, mus_train, rank, lambda_=lam)
+            
             # recover W_hat
             W_hat, _, _, _, _ = regress(neu_train, mus_train, lam)
 
