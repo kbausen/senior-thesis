@@ -843,7 +843,7 @@ def time_cut (tensor):
     return N_scale, N_m_scale
 
 
-def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True, basis_2 = 0):
+def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = True, basis_2 = 0, J_sect = 2):
     """
     Performs regression needed for figure 4.
 
@@ -855,6 +855,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         dimensions: the amount of dimensions matrix N should be reduced to
         plot: boolean which will call fig_4_plot if True
         basis: parameter for fig_4_plot
+        J_sect: start from 1-4, tells which quadrant of the data it will use 
        
 
 
@@ -866,11 +867,18 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         MSE: The mean squared error of M_hat in comparison to M_tilde
     """
 
+    # retrieving dataset specifications
+    J, PMd = ident(tensor_N)
+    if J and PMd:
+        J_sect -= 1
+        lower = J_sect*27
+        upper = lower + 27
+        tensor_N = tensor_N[lower:upper, :, :]
+        tensor_M = tensor_M[lower:upper, :, :]
+
     # retrieving number of conditions
     cond = tensor_N.shape[0]
 
-    # retrieving dataset specifications
-    J, PMd = ident(tensor_N)
 
     # tensor_N = slice(tensor_N)
 
