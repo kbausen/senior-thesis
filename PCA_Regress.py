@@ -869,6 +869,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
+    print(J)
+    print(PMd)
     if J and PMd:
         J_sect -= 1
         lower = J_sect*27
