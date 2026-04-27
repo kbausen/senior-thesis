@@ -1084,14 +1084,14 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     # movement null and potent space for gamma
     N_null_move = neu_move @ W_null
     # N_nm_tensor = shape_tensor(N_null_move, cond)
-    N_null_move = N_null_move - N_null_move.mean(axis=0)     # the other one to comment out
+    # N_null_move = N_null_move - N_null_move.mean(axis=0)     # the other one to comment out
     # N_null_move = shape_matrix(N_nm_tensor)
     null_move_frob = np.linalg.norm(N_null_move)**2
     null_move_var = np.sum(np.var(N_null_move, axis=0))
 
     N_pot_move = neu_move @ W_potent
     # N_pm_tensor = shape_tensor(N_pot_move, cond)
-    N_pot_move = N_pot_move - N_pot_move.mean(axis=0)     # the one to comment out
+    # N_pot_move = N_pot_move - N_pot_move.mean(axis=0)     # the one to comment out
     # N_pot_move = shape_matrix(N_pm_tensor)
     pot_move_frob = np.linalg.norm(N_pot_move)**2
     pot_move_var = np.sum(np.var(N_pot_move, axis=0))
@@ -1123,7 +1123,7 @@ def tuning_rat (W_potent, W_null, neu_move, neu_prep, get_gamma = False, cond = 
     null_fraction = null_prep_var / (null_prep_var + pot_prep_var)
     pot_fraction  = pot_prep_var / (null_prep_var + pot_prep_var)
     if get_gamma:
-        return gamma                                                           # RETURNING GAMMA 2
+        return gamma2                                                           # RETURNING GAMMA 2
 
     print("1/Gamma: ", 1/gamma)
     print("1/Gamma2: ", 1/gamma2)
@@ -1320,7 +1320,7 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
             ax.text(
             x[i],                      # center of the two bars
             max(null_prop[i], potent_prop[i]) + 0.05,  # above taller bar
-            f"{var_tuning_means[i]:.2f}",     # <-- put whatever value you want here
+            f"{frob_tuning_means[i]:.2f}",     # <-- put whatever value you want here
             ha='center',
             va='bottom',
             fontsize=9
@@ -1458,7 +1458,7 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
             # V_pot[t]  = np.sum(X_pot**2)  / (cond * dims)
     
         V_null = (1/gamma) * V_null
-        # V_pot = (1/gamma) * V_pot
+        V_pot = (1/gamma) * V_pot
         
         # appending if J_PMd
         if J_PMd:
