@@ -873,45 +873,64 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     # retrieving dataset specifications
     J, PMd = ident(tensor_N)
     if J and PMd:
-        J_sect -= 1
-        lower = J_sect*27
-        upper = lower + 27
-        tensor_N = tensor_N[lower:upper, :, :]
-        tensor_M = tensor_M[lower:upper, :, :]
+        reps = 4
+    else: 
+        reps = 1
+    
+    for i in range (reps): 
+        if J and PMd: 
+            lower = i*27
+            upper = lower + 27
+            tensor_N = tensor_N[lower:upper, :, :]
+            tensor_M = tensor_M[lower:upper, :, :]
 
-    # retrieving number of conditions
-    cond = tensor_N.shape[0]
+        # retrieving number of conditions
+        cond = tensor_N.shape[0]
 
-    # tensor_N = slice(tensor_N)
+        # tensor_N = slice(tensor_N)
 
-    # if PMd: 
-        # tensor_M = slice(tensor_M)
+        # if PMd: 
+            # tensor_M = slice(tensor_M)
 
-    # scaling, mean centering, and involving only the time periods needed for regression (the movement)
-    regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
-    time_ct = regress_M.shape [0]
-    time_ct_neu = regress_N.shape [0]
+        # scaling, mean centering, and involving only the time periods needed for regression (the movement)
+        regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
+        time_ct = regress_M.shape [0]
+        time_ct_neu = regress_N.shape [0]
 
-    # retrieving data projected onto the first N_dim and M_dim PCs
-    N_tilde,N_PCs = run_PCA(regress_N, dimensions)
-    M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
+        # retrieving data projected onto the first N_dim and M_dim PCs
+        N_tilde,N_PCs = run_PCA(regress_N, dimensions)
+        M_tilde,PCs = run_PCA(regress_M, int(dimensions/2))
 
-    # how many time bins are included in the movement period
-    time_bins = int(time_ct / cond)
+        # how many time bins are included in the movement period
+        time_bins = int(time_ct / cond)
 
-    # how many time bins are included in the preparatory and movement period
-    time_bins_pm = int(time_ct_neu / cond)
+        # how many time bins are included in the preparatory and movement period
+        time_bins_pm = int(time_ct_neu / cond)
 
-    # difference in bins = prep bins
-    diff_bin = int((time_bins_pm - time_bins))
-   
-    # removing prep bins adn reshaping for ridge
-    regress_N = shape_tensor(N_tilde, conditions = cond, time_bins = time_bins_pm)
-    N_tens_spliced = regress_N[:,:, diff_bin:]
-    regress_N_sp = shape_matrix(N_tens_spliced)
+        # difference in bins = prep bins
+        diff_bin = int((time_bins_pm - time_bins))
+    
+        # removing prep bins adn reshaping for ridge
+        regress_N = shape_tensor(N_tilde, conditions = cond, time_bins = time_bins_pm)
+        N_tens_spliced = regress_N[:,:, diff_bin:]
+        N_tens_prep = regress_N[:, :, :diff_bin]
+        regress_N_sp = shape_matrix(N_tens_spliced)
+        neu_prep = shape_matrix(N_tens_prep)
 
-    # running through ridge regression
-    W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd, cv = cv)
+        # running through ridge regression
+        W, R2_total, R2_dim, MSE_all, RMSE_all = r_regress(regress_N_sp, M_tilde, num_bins = time_bins, J = J, PMd = PMd, cv = cv)
+
+        # what each time period predicts through the movement communication channel
+        comm_move = regress_N_sp @ W    # [ct_move, 32] - movement neural through channel
+        comm_prep = neu_prep @ W    # [ct_prep, 32] - prep neural through same channel
+
+        # compare the magnitude of predicted output
+        var_comm_move = np.sum(np.var(comm_move, axis=0))
+        var_comm_prep = np.sum(np.var(comm_prep, axis=0))
+
+        print("Variance communicated during movement:", var_comm_move)
+        print("Variance communicated during prep:    ", var_comm_prep)
+        print("Ratio prep/move:                      ", var_comm_prep / var_comm_move)
 
     if plot:
         regress_N, _, _ = time_shift(tensor_N, tensor_M, fig4 = True)  # getting new regression N which includes more time points to match their graphs
