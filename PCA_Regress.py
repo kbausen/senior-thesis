@@ -874,6 +874,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
     J, PMd = ident(tensor_N)
     if J and PMd:
         reps = 4
+        temp_tensor = tensor_N
+        temp_tensor_M = tensor_M
     else: 
         reps = 1
     
@@ -881,8 +883,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         if J and PMd: 
             lower = i*27
             upper = lower + 27
-            tensor_N = tensor_N[lower:upper, :, :]
-            tensor_M = tensor_M[lower:upper, :, :]
+            tensor_N = temp_tensor[lower:upper, :, :]
+            tensor_M = temp_tensor_M[lower:upper, :, :]
 
         # retrieving number of conditions
         cond = tensor_N.shape[0]
@@ -1235,7 +1237,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
 
     if J and PMd: 
         J_rep = 4
-    
+        temp_tensor = tensor_N
+        temp_tensor_M = tensor_M
         # initializing arrays to hold the average values for each set of dimensions
         var_tuning_means_ext = []
         frob_tuning_means_ext = []
@@ -1256,8 +1259,8 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
                 J_PMd = True
                 start = i * 27
                 finish = start + 27
-                tensor_N = tensor_N[start:finish, :, :]
-                tensor_M = tensor_M[start:finish, :, :]
+                tensor_N = temp_tensor[start:finish, :, :]
+                tensor_M = temp_tensor_M[start:finish, :, :]
 
             # tensor_N = slice(tensor_N)
             # if PMd: 
@@ -1381,6 +1384,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
     if J and PMd: 
         J_rep = 4
         J_PMd = True
+        temp_tensor = tensor_N
+        temp_tensor_M = tensor_M
     else: 
         J_rep = 1
         J_PMd = False
@@ -1398,8 +1403,8 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
         if J and PMd:
             start = i * 27
             finish =start + 27
-            tensor_N = tensor_N[start:finish, :, :]
-            tensor_M = tensor_M[start:finish, :, :]
+            tensor_N = temp_tensor[start:finish, :, :]
+            tensor_M = temp_tensor_M[start:finish, :, :]
             
 
         # tensor_N = slice(tensor_N)
