@@ -1254,9 +1254,10 @@ def tuning_mult (tensor_N, tensor_M, dims, plot = False, rep = 1):
         for i in range (J_rep): 
             if J and PMd:
                 J_PMd = True
-                finish = i + 27
-                tensor_N = tensor_N[i:finish, :, :]
-                tensor_M = tensor_M[i:finish, :, :]
+                start = i * 27
+                finish = start + 27
+                tensor_N = tensor_N[start:finish, :, :]
+                tensor_M = tensor_M[start:finish, :, :]
 
             # tensor_N = slice(tensor_N)
             # if PMd: 
@@ -1395,9 +1396,10 @@ def sup_tuning (tensor_N, tensor_M, dims = 6, fig_4D = False):
 
     for i in range (J_rep): 
         if J and PMd:
-            finish = i + 27
-            tensor_N = tensor_N[i:finish, :, :]
-            tensor_M = tensor_M[i:finish, :, :]
+            start = i * 27
+            finish =start + 27
+            tensor_N = tensor_N[start:finish, :, :]
+            tensor_M = tensor_M[start:finish, :, :]
             
 
         # tensor_N = slice(tensor_N)
