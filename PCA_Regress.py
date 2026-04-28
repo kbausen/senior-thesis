@@ -932,8 +932,8 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         comm_prep = neu_prep @ W    # [ct_prep, 32] - prep neural through same channel
 
         # compare the magnitude of predicted output
-        var_comm_move = np.sum(np.var(comm_move, axis=0))
-        var_comm_prep = np.sum(np.var(comm_prep, axis=0))
+        var_comm_move = np.sum(np.var(comm_move, axis=0)) / np.sum(np.var(regress_N_sp, axis = 0))
+        var_comm_prep = np.sum(np.var(comm_prep, axis=0)) / np.sum(np.var(neu_prep, axis = 0))
 
         print("Variance communicated during movement:", var_comm_move)
         print("Variance communicated during prep:    ", var_comm_prep)
