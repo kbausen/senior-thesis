@@ -886,6 +886,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
 
         # retrieving number of conditions
         cond = tensor_N.shape[0]
+        print(cond)
 
         # tensor_N = slice(tensor_N)
 
@@ -896,6 +897,7 @@ def fig_4 (tensor_N, tensor_M, dimensions = 6, plot = False, basis = 0, cv = Tru
         regress_N, move_N, regress_M = time_shift(tensor_N, tensor_M)
         time_ct = regress_M.shape [0]
         time_ct_neu = regress_N.shape [0]
+        print(regress_N.shape)
 
         # retrieving data projected onto the first N_dim and M_dim PCs
         N_tilde,N_PCs = run_PCA(regress_N, dimensions)
