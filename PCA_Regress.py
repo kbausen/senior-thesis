@@ -176,6 +176,9 @@ def run_PCA (matrix, rank):
     C_2 = C_2 / matrix.shape[0]
     # runs PCA
     U, S_, V_T = svd(C_2)
+    S_sum = np.sum(S_[:rank])
+    S_total = np.sum(S_)
+    print(S_sum/S_total)
 
     # project the mean centered data onto these PCs to produce a rank k approximation
     proj = matrix @ U[:, :rank]
